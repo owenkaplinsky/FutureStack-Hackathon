@@ -2,9 +2,9 @@
 
 ## Problem Statement
 
-Normally, you have to message LLMs if you want information, such as up-to-date news. Recently, sites like ChatGPT have added features such as scheduling messages, where the AI sends you a message at a certain time. But, the issue is that these are always at a set time, and don't have custom triggers. But what if you want to know when something happens dynamically - something that isn't time dependent and isn't predictable?
+Normally, you have to message LLMs if you want information, such as up-to-date news. Recently, sites like ChatGPT have added features such as scheduling messages, where the AI sends you a message at a certain time. The issue with this is that these are always at a set time, and don't have custom triggers. But what if you want to know when something happens dynamically - something that isn't time dependent and isn't predictable?
 
-Tools like Google Alerts aim to solve this problem by automatically detecting content and forwarding it to you. But, this solution has three major flaws:
+Tools like Google Alerts aim to solve this problem by automatically detecting content and forwarding it to you - though this solution has three major flaws:
 
 1. Every item is forwarded to you - whether it's relevant or not. There is no filtering of any kind - meaning users are overloaded with content!
 2. It doesn't capture very many angles: you'd need to make many RSS filters, which lead to more unwanted content than stuff you want! Setting this up is time consuming, and requires lots of work to get it done right.
@@ -30,8 +30,6 @@ All sent right to you through an email, so you get the info right when it's rele
 ## Explanation
 
 ![](flowchart.webp)
-
----
 
 ### Step 1 - Setup
 
