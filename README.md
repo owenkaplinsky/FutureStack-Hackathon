@@ -1,12 +1,22 @@
 # Proactive AI
 
-## Problem
+## Problem Statement
 
 Normally, you have to message LLMs if you want information, such as up-to-date news. Recently, sites like ChatGPT have added features such as scheduling messages, where the AI sends you a message at a certain time. But, the issue is that these are always at a set time, and don't have custom triggers. But what if you want to know when something happens dynamically - something that isn't time dependent and isn't predictable?
 
-## Solution
+Tools like Google Alerts aim to solve this problem by automatically detecting content and forwarding it to you. But, this solution has three major flaws:
 
-Our project allows a LLM (llama-4-scout) to use RSS feeds. It can dynamically find out when things happen, all on its own. With reasoning and chain-of-thought, we can let it determine when there is enough relevant information to proactively reach out to a user, such as with push notifications.
+1. Every item is forwarded to you - whether it's relevant or not. There is no filtering of any kind - meaning users are overloaded with content!
+2. It doesn't capture very many angles: you'd need to make many RSS filters, which lead to more unwanted content than stuff you want! Setting this up is time consuming, and requires lots of work to get it done right.
+3. You are only sent links to content. This takes a lot of time to read, understand, and act upon. And most of the time the content isn't even relevant to you!
+
+Current AIs are almost always reactive. For the few that are proactive, none are able to address all of these issues.
+
+## Impact Statement
+
+As humans, we’re drowning in irrelevant information. Our project turns LLMs from passive responders into dynamic agents, giving you back your time by filtering noise into signal, and delivering only what matters.
+
+To do this, we allow llama-4-scout (llama) to autonomously monitor information online, *and* create actionable reports with it, all on its own. With reasoning, multi-step filtering, and more, it is able to determine when there is enough relevant information to proactively reach out to a user, making it easier to get information you need to have without being online 24/7. Then, once it gathers enough information, it builds a report with citations and specific info that directly ties back into the user's query.
 
 This allows for you to find out about dynamic things, such as but not limited to:
 - Breaking news
@@ -15,7 +25,7 @@ This allows for you to find out about dynamic things, such as but not limited to
 - Notify you when something is trending
 - And more!
 
-Importantly, this doesn't just reach out to you with a collection of links. Instead, the LLM compiles a report with all relevant information, making it easy to digest information easily and understand why it matters, what it means, and more.
+All sent right to you through an email, so you get the info right when it's relevant.
 
 ## Explanation
 
@@ -29,17 +39,17 @@ First, we take in the user's request. Immediately, llama creates 7 RSS searches 
 
 We set up a cron job to periodically check for new content.
 
-### Step 2 - Filter One
+### Step 2 - First Pass
 
 Every time the cron job runs, we get a list of new RSS items. After deduplication, we then use the llama to filter out only obviously irrelevant items, avoiding false negatives. This way, we can save tokens while having a lower risk of losing important content.
 
 If the amount of accepted items is greater than a certain amount, we can proceed to the next step.
 
-### Step 3 - Filter Two
+### Step 3 - Deep Pass
 
 Now, with the list of items that passed the first filter, we can evaluate them under the second filter. This time, we *do* use the contents of the webpage in the llama call. Llama either filters out the item, or creats a 200 word summary with important details that are specifically mentioned. This is important for Step 4.
 
-### Step 4 - Reporting
+### Step 4 - Narrative
 
 Once we have all of our items that passed both filters, we can format them into one call. We send llama the following information per item:
 - The title of the item.
