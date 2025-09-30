@@ -8,7 +8,6 @@ from cerebras.cloud.sdk import Cerebras
 from newspaper import Article
 import json
 import difflib
-import subprocess
 import requests
 from playwright.sync_api import sync_playwright, Error as PlaywrightError
 
