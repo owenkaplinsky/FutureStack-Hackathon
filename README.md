@@ -16,7 +16,7 @@ Current AIs are almost always reactive. For the few that are proactive, none are
 
 As humans, we’re drowning in irrelevant information. Our project turns LLMs from passive responders into dynamic agents, giving you back your time by filtering noise into signal, and delivering only what matters.
 
-To do this, we allow llama-4-scout (llama) to autonomously monitor information online, *and* create actionable reports with it, all on its own. With reasoning, multi-step filtering, and more, it is able to determine when there is enough relevant information to proactively reach out to a user, making it easier to get information you need to have without being online 24/7. Then, once it gathers enough information, it builds a report with citations and specific info that directly ties back into the user's query.
+To do this, we used llama-4-scout (llama) with Cerebras API in order to get top-tier performance with near-instant generation. Llama autonomously monitors information online, *and* create actionable reports with it, all on its own. With reasoning, multi-step filtering, and more, it is able to determine when there is enough relevant information to proactively reach out to a user, making it easier to get information you need to have without being online 24/7. Then, once it gathers enough information, it builds a report with citations and specific info that directly ties back into the user's query.
 
 This allows for you to find out about dynamic things, such as but not limited to:
 - Breaking news
@@ -25,7 +25,7 @@ This allows for you to find out about dynamic things, such as but not limited to
 - Notify you when something is trending
 - And more!
 
-All sent right to you through an email, so you get the info right when it's relevant.
+This content is sent right to you through email, so you get the info when it's relevant, not days later. To be clear: this isn't a chatbot. It's an agent that is persistent, proactive, and asynchronous. A report could come at noon or midnight, because it never stops working for you.
 
 ## Explanation
 
@@ -47,6 +47,8 @@ If the amount of accepted items is greater than a certain amount, we can proceed
 
 Now, with the list of items that passed the first filter, we can evaluate them under the second filter. This time, we *do* use the contents of the webpage in the llama call. Llama either filters out the item, or creats a 200 word summary with important details that are specifically mentioned. This is important for Step 4.
 
+If we do not have enough content at this step to meet the minimum set by the user, these summaries are saved to add to the count of the next cron job.
+
 ### Step 4 - Narrative
 
 Once we have all of our items that passed both filters, we can format them into one call. We send llama the following information per item:
@@ -55,4 +57,6 @@ Once we have all of our items that passed both filters, we can format them into 
 - The date it was published.
 - The previously generated information from Step 3.
 
-Now, llama can create a narrative report, citing all information and providing specific information. The user is then notified that their report is waiting for them!
+Now, llama can create a narrative report, citing all information and providing specific information - instead of a dump of links, it synthesizes, cites, and contextualizes information in human-readable form. With Cerebras, we're able to speed up the generation time to get reports out timely - our process which takes ~ 60 seconds total in entirety could take 10 minutes without Cerebras.
+
+Finally, the user is then notified that their report is waiting for them!
