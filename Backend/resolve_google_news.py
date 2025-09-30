@@ -1,6 +1,8 @@
+import asyncio
+asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+
 import sys
 from playwright.sync_api import sync_playwright, Error as PlaywrightError
-
 
 def resolve_url(url: str) -> str:
     try:
