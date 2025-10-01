@@ -519,11 +519,11 @@ def refresh_data(user_query: str, searches: list, last_time: datetime):
 #####################
 
 
-def create_report(user_query: str, vetted_items: dict, first_time: datetime):
+def create_report(user_query: str, vetted_items: dict, last_report: datetime):
     """
     user_query: The query from the user.
     vetted_items: All items that got past both filters.
-    first_time: Last time that the user got a report; first time a cron job was run for this report.
+    last_report: Last time that the user got a report; first time a cron job was run for this report.
     """
 
     current_time = datetime.now()
@@ -547,7 +547,7 @@ def create_report(user_query: str, vetted_items: dict, first_time: datetime):
         2. Use the most reputable source for each piece of information and avoid duplication.
         3. Use specific information such as numbers, events, people, etc. where useful; do not avoid using these.
         4. Naturally connect all information back to the query, and combine sources when appropriate.
-        5. Begin by addressing the query directly, explaining what has developed since the last interaction ({first_time}) up to today ({current_time}), including how much time has passed.
+        5. Begin by addressing the query directly, explaining what has developed since ({last_report}) up to today ({current_time}), including how much time has passed.
         6. Never write dates (like "2025-09-29", "Sep 29, 2025", or UTC strings). Always write relative time only, e.g. "3 hours ago", "2 days ago", or "2 weeks ago".
         7. Conclude by explaining why the updates matter, adding context rather than summarizing obvious knowledge.
         8. Do not mention being an AI or proactive agent, and do not use words like "proactive." Write directly to the reader ("you") when appropriate.
