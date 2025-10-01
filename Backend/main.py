@@ -420,8 +420,6 @@ def refresh_data(user_query: str, searches: list, last_time: datetime):
             {
                 "role": "assistant",
                 "content": f"""
-                I am currently evaluating whether this article is relevant to the user query: '{user_query}'.
-
                 ARTICLE TITLE: {item}
                 ARTICLE CONTENT (first 3000 chars):
                 {content}
@@ -455,6 +453,8 @@ def refresh_data(user_query: str, searches: list, last_time: datetime):
                 
                 Additionally, I will use quotes for important information that matters verbatum.
                 I will *literally* use a minimum of 200 words.
+
+                I am currently evaluating whether this article is relevant to the user query: '{user_query}'. The user query is specific, and exact. I will respect that, and NEVER pass any items that aren't relevant to the query.
 
                 My output must strictly use the `mark` function schema.
                 """
