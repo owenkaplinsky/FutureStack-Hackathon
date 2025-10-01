@@ -91,7 +91,7 @@ start_messages = [
 
     These are all relevant, but capture different aspects of the request. 
 
-    Aim to reduce false negatives at all costs. If an item has ANY possibility of being relevant, you must include it. ONLY remove the titles that are OBVIOUSLY irrelevant to the user's request.
+    Aim to reduce false negatives at all costs. If an item has ANY possibility of being relevant, you must include it. ONLY remove the titles that are OBVIOUSLY irrelevant to the user's request. And by OBVIOUSLY, this means ENTIRELY irrelevant, not just mostly.
     """}
 ]
 
@@ -460,6 +460,28 @@ def refresh_data(user_query: str, searches: list, last_time: datetime):
                 I will *literally* use a minimum of 200 words.
 
                 I am currently evaluating whether this article is relevant to the user query: '{user_query}'. The user query is specific, and exact. I will respect that, and NEVER pass any items that aren't relevant to the query.
+
+                I will understand that there is nuance to whether something is relevant or not. Here are some examples that can ground me:
+                
+                Query: "housing market"  
+                "Federal Reserve raises interest rates, cooling mortgage demand" Relevant  
+                Explanation: Not about houses directly, but interest rates strongly shape the housing market.  
+                "Celebrity buys luxury mansion" Not relevant  
+                Explanation: Involves a house, but it's gossip, not market trends.  
+
+                Query: "renewable energy"  
+                "State bans new natural gas plants" Relevant  
+                Explanation: This isn't about renewables by name, but policy indirectly pushes renewable adoption.  
+                "Utility raises electricity prices after storm" Not relevant  
+                Explanation: Energy-related, but about infrastructure costs, not renewable policy or adoption.  
+
+                Query: "AI in healthcare"  
+                "FDA delays approval of new AI diagnostic tool" Relevant  
+                Explanation: Regulatory decision, not hospital deployment, but it directly impacts healthcare AI use.  
+                "AI company raises $50M in funding" Not relevant  
+                Explanation: AI-related, but no healthcare connection unless specified.  
+
+                As I can see now, I need to focus on the heart of the user's query, not the exact semantics unless they make it EXTREMELY, 100% clear that they need it dialed in.
 
                 My output must strictly use the `mark` function schema.
                 """
