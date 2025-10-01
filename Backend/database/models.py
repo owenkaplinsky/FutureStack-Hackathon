@@ -24,7 +24,7 @@ class Items(Base):
     task_title = Column(String, nullable=False)
     item_title = Column(String, nullable=False)
     text = Column(String, nullable=False)
-    link = Column(Integer, nullable=False)
+    link = Column(String, nullable=False)
     site_date = Column(DateTime, nullable=False)
 
 # User information

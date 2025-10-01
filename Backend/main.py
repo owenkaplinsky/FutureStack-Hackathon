@@ -9,6 +9,7 @@ from newspaper import Article
 import json
 import difflib
 import requests
+import markdown
 from playwright.sync_api import sync_playwright, Error as PlaywrightError
 
 
@@ -223,9 +224,9 @@ def openrouter_completion(messages, tools):
 
 def chat(messages, tools=None, need_tool=False):
     for _ in range(3):
-        message, tool_name, tool_contents = cerebras_completion(messages, tools)
+        # message, tool_name, tool_contents = cerebras_completion(messages, tools)
 
-        # message, tool_name, tool_contents = openrouter_completion(messages, tools)
+        message, tool_name, tool_contents = openrouter_completion(messages, tools)
 
         if need_tool and not tool_name:
             continue # retry if a tool is required
@@ -275,8 +276,7 @@ def refresh_data(user_query: str, searches: list, last_time: datetime):
     ####################
 
 
-    print()
-    print(f"=== FILTER ROUND ONE ===")
+    print("=== FILTER ROUND ONE ===")
     print()
 
     all_rss_items = [] # everything pulled from RSS
@@ -290,11 +290,14 @@ def refresh_data(user_query: str, searches: list, last_time: datetime):
         if valid_items >= 15:
             break
 
-        output_dict, output_str = get_news_feed(search)
+        output_dict, output_str = get_news_feed(search, start_date=last_time)
 
         # If there are no results
         if output_str == '':
+            print("=== NO NEW ITEMS ===")
             continue
+        else:
+            print("=== NEW ITEMS ===")
 
         valid_items += len(output_dict)
 
@@ -317,6 +320,9 @@ def refresh_data(user_query: str, searches: list, last_time: datetime):
     all_rss_items = list(dict.fromkeys(all_rss_items))
     chosen_titles = list(dict.fromkeys(chosen_titles))
 
+    if len(all_rss_items) == 0:
+        return []
+
     # Merge all dicts
     combined_news_dict = {}
     for nd in all_news_dicts:
@@ -333,8 +339,7 @@ def refresh_data(user_query: str, searches: list, last_time: datetime):
     #####################
 
 
-    print()
-    print(f"=== FILTER ROUND TWO ===")
+    print("=== FILTER ROUND TWO ===")
     print()
 
     # Google News is annoying. This gets the actual URL instead of Google's redirect
@@ -538,5 +543,7 @@ def create_report(user_query: str, vetted_items: dict, first_time: datetime):
         """}
     ]
     message, _, _ = chat(report_messages)
+
+    message = markdown.markdown(message)
 
     return message

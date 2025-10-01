@@ -89,21 +89,16 @@ def run_cron(db: Session = Depends(get_db)):
         last_cron = task.last_cron
         last_report = task.last_report
 
-        # Update run timestamp
-        task.last_cron = datetime.utcnow()
-        db.add(task)
-        db.commit()
-        db.refresh(task)
-
-        # Get the newly vetted items since the last cron
         new_items = main.refresh_data(text, searches, last_cron)
-
-        # Filter existing items for this task
         existing_items = db.query(models.Items).filter(models.Items.taskid == id).all()
+        # Convert SQLAlchemy Items into tuples
+        existing_as_tuples = [
+            (item.item_title, item.link, item.site_date, item.text)
+            for item in existing_items
+        ]
 
-        all_items = list(new_items) + list(existing_items)
+        all_items = list(new_items) + existing_as_tuples
 
-        # Check if we meet the minimum item count
         if len(all_items) >= sources:
             report = main.create_report(text, all_items, last_report)
 
@@ -116,7 +111,7 @@ def run_cron(db: Session = Depends(get_db)):
             )
 
             db.query(models.Items).filter(models.Items.taskid == id).delete()
-            db.commit()
+            task.last_report = datetime.utcnow()
         else:
             for name, link, date, reason in new_items:
                 new_item = models.Items(
@@ -130,7 +125,9 @@ def run_cron(db: Session = Depends(get_db)):
                 )
                 db.add(new_item)
 
-            db.commit()
+        task.last_cron = datetime.utcnow()
+        db.commit()
+        db.refresh(task)
 
     return {"detail": "All tasks ran successfully."}
 
