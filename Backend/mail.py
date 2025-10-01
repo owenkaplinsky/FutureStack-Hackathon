@@ -15,19 +15,17 @@ def get_gmail_service():
     creds = None
     if os.path.exists('token.json'):
         creds = Credentials.from_authorized_user_file('token.json', SCOPES)
-    if not creds or not creds.valid:
-        if creds and creds.expired and creds.refresh_token:
-            creds.refresh(Request())
-        else:
-            flow = InstalledAppFlow.from_client_secrets_file(CREDS_PATH, SCOPES)
-            creds = flow.run_local_server(port=8000)
+    if creds and creds.expired and creds.refresh_token:
+        creds.refresh(Request())
         with open('token.json', 'w') as token:
             token.write(creds.to_json())
 
+    if not creds or not creds.valid:
+        raise Exception("No valid Gmail credentials. token.json missing or invalid.")
+
     return build('gmail', 'v1', credentials=creds)
 
-# Send an email from `futurestack.proactiveai@gmail.com` to anyone
-# Will probably end up in spam! Make sure to tell people that
+
 def send_message(to, subject, message_text, sender="me"):
     service = get_gmail_service()
     message = MIMEText(message_text)
