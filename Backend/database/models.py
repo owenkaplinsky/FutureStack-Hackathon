@@ -16,7 +16,7 @@ class Task(Base):
 
 # Items that went through both filters and are waiting to be used
 class Items(Base):
-    __tablename__ = "tasks"
+    __tablename__ = "items"
 
     id = Column(Integer, primary_key=True, nullable=False, index=True, autoincrement=True)
     taskid = Column(Integer, nullable=False)
@@ -29,7 +29,7 @@ class Items(Base):
 
 # User information
 class Users(Base):
-    __tablename__ = "tasks"
+    __tablename__ = "users"
 
-    userid = Column(Integer, nullable=False, index=True)
+    userid = Column(Integer, primary_key=True, nullable=False, index=True, autoincrement=True)
     email = Column(String, nullable=False)

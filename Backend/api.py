@@ -24,6 +24,10 @@ def get_db():
 class CreateUser(BaseModel):
     email: str
 
+class UserInfo(BaseModel):
+    userid: Optional[int] = None
+    email: Optional[str] = None
+
 class TaskBase(BaseModel):
     userid: int
     title: str
@@ -57,6 +61,18 @@ def create_user(user: CreateUser, db: Session = Depends(get_db)):
     db.commit()
     db.refresh(new_user)
     return {"detail": "User created successfully."}
+
+# GET /user_info - get user info
+@app.post("/user_info", status_code=201)
+def create_user(info: UserInfo, db: Session = Depends(get_db)):
+    userid = info.userid
+    email = info.email
+
+    # Return the user info type that was not given
+    if userid != None:
+        return db.query(models.Users).filter(models.Users.userid == userid).first().email
+    else:
+        return db.query(models.Users).filter(models.Users.email == email).first().userid
 
 # POST /run_cron - call this for the cron job. Does all the backend work for cron
 @app.post("/run_cron")
@@ -98,6 +114,9 @@ def run_cron(db: Session = Depends(get_db)):
                 subject=f"Your report on {title} is waiting for you!",
                 message_text=report
             )
+
+            db.query(models.Items).filter(models.Items.taskid == id).delete()
+            db.commit()
         else:
             for name, link, date, reason in new_items:
                 new_item = models.Items(
@@ -137,7 +156,8 @@ def create_query(task: TaskCreate, db: Session = Depends(get_db)):
         text=task.text,
         sources=task.sources,
         searches=main.create_query(task.text),
-        last_cron=task.last_cron
+        last_cron=task.last_cron,
+        last_report=task.last_cron
     )
     db.add(new_task)
     db.commit()
