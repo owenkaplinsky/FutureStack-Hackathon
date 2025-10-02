@@ -21,7 +21,8 @@ from playwright.sync_api import sync_playwright, Error as PlaywrightError
 def get_news_feed(query: str, limit: int = 15, start_date: datetime = datetime(2025, 9, 25, 0, 0, 0)):
     # Encode the query into a URL
     encoded_query = urllib.parse.quote(query)
-    feed_url = f"https://news.google.com/rss/search?q={encoded_query}"
+    time_diff = int((datetime.now() - start_date).total_seconds() / 3600)
+    feed_url = f"https://news.google.com/rss/search?q={encoded_query}+when:{time_diff}h"
 
     feed = feedparser.parse(feed_url)
     length = len(feed.entries)
@@ -39,10 +40,6 @@ def get_news_feed(query: str, limit: int = 15, start_date: datetime = datetime(2
             continue
 
         entry_date = datetime.fromtimestamp(time.mktime(published_parsed))
-
-        # Filter: skip if before start_date
-        if start_date and entry_date < start_date:
-            continue
 
         title = entry.title
         link = entry.link
@@ -68,7 +65,7 @@ start_messages = [
 
     Workflow:
     1. User sends request.
-    2. Use the 'Hook' tool to create EXACTLY 7 distinct searches. YOU MAY NOT DO LESS THAN 7.
+    2. Use the 'Hook' tool to create EXACTLY 7 distinct searches.
     3. You will receive the top 5 results per search. Use 'Mark' to flag relevant ones.
     
     Rules for searches:
@@ -90,6 +87,9 @@ start_messages = [
     - "AI governance oversight research initiatives"
 
     These are all relevant, but capture different aspects of the request. 
+     
+    YOU ARE REQUIRED TO MAKE 7 OF THEM. THIS IS NOT NEGOTIABLE. NO LESS THAN SEVEN.
+    These must be VERY different rom each other. The entire point is that they capture different items in the RSS feeds, and if they're too similar they will overlap - which is bad.
 
     Aim to reduce false negatives at all costs. If an item has ANY possibility of being relevant, you must include it. ONLY remove the titles that are OBVIOUSLY irrelevant to the user's request. And by OBVIOUSLY, this means ENTIRELY irrelevant, not just mostly.
     """}
@@ -286,10 +286,6 @@ def refresh_data(user_query: str, searches: list, last_time: datetime):
     valid_items = 0
 
     for search in searches:
-        # Stop searching if we already have a ton of items from this round
-        if valid_items >= 15:
-            break
-
         output_dict, output_str = get_news_feed(search, start_date=last_time)
 
         # If there are no results
@@ -297,7 +293,7 @@ def refresh_data(user_query: str, searches: list, last_time: datetime):
             print("=== NO NEW ITEMS ===")
             continue
         else:
-            print("=== NEW ITEMS ===")
+            print(f"=== {len(output_dict)} NEW ITEMS ===")
 
         valid_items += len(output_dict)
 
@@ -339,7 +335,7 @@ def refresh_data(user_query: str, searches: list, last_time: datetime):
     #####################
 
 
-    print("=== FILTER ROUND TWO ===")
+    print(f"=== FILTER ROUND TWO ({len(chosen_dict)} ITEMS) ===")
     print()
 
     # Google News is annoying. This gets the actual URL instead of Google's redirect
@@ -418,7 +414,7 @@ def refresh_data(user_query: str, searches: list, last_time: datetime):
 
         # Article is empty or a stub
         if (len(content) < 200):
-            print(f"[DEBUG] Skipping {item} ({link}), content length={len(content)}, content preview={content[:100]}")
+            print(f"! Item is very short or empty !")
             continue
 
         messages = list(start_messages) + [
@@ -511,6 +507,10 @@ def refresh_data(user_query: str, searches: list, last_time: datetime):
         else:
             print("! ITEM FAILED !")
 
+        # We don't need more than this!
+        if len(passed_items) >= 10:
+            break
+
     return passed_items
 
 
@@ -558,8 +558,9 @@ def create_report(user_query: str, vetted_items: dict, last_report: datetime):
         - YOU ARE NOT ALLOWED TO CASUALLY CITE THINGS LIKE "For example, SOURCE said..." YOU ARE REQUIRED TO CITE IT AT THE END OF TALKING ABOUT THE CONTENT.
         - YOU MUST ALWAYS INCLUDE THE LINK TO THE ARTICLE. YOU CANNOT MENTION THAT IT EXISTS WITHOUT LINKING TO IT.
 
-        CONTEXT:
         The goal is to provide timely updates on new developments since the last interaction, not background knowledge. The writing should feel polished, informative, and up-to-date.
+
+        It is entirely okay to use multiple sources in the same paragraph. Don't always try to make one paragraph per source if it doesn't naturally flow that way.
 
         Remember, 750 words MINIMUM.
         """}

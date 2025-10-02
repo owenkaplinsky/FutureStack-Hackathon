@@ -1,9 +1,13 @@
-from fastapi import FastAPI, Depends, HTTPException
+from fastapi import FastAPI, Depends, HTTPException, status
+from fastapi.security.api_key import APIKeyHeader
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
 from datetime import datetime
 from typing import Optional
 from passlib.context import CryptContext
+from dotenv import load_dotenv
+import os
+
 import main
 from database.db import Base, SessionLocal, engine
 from database import models
@@ -16,12 +20,25 @@ Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
 
+load_dotenv()
+
+API_KEY = os.getenv("AUTH_KEY")
+api_key_header = APIKeyHeader(name="AUTH_KEY", auto_error=False)
+
 def get_db():
     db = SessionLocal()
     try:
         yield db
     finally:
         db.close()
+
+def get_api_key(api_key: str = Depends(api_key_header)):
+    if api_key == API_KEY:
+        return api_key
+    raise HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Invalid or missing API Key",
+    )
 
 class CreateUser(BaseModel):
     email: str
@@ -59,13 +76,15 @@ def get_password_hash(password):
 
 def verify_password(plain_password, hashed_password):
     return pwd_context.verify(plain_password, hashed_password)
+  
 # POST /create_user - add a new user
 @app.post("/create_user", status_code=201)
-def create_user(user: CreateUser, db: Session = Depends(get_db)):
+def create_user(user: CreateUser, db: Session = Depends(get_db), api_key: str = Depends(get_api_key)):
     db_user = db.query(models.Users).filter(models.Users.email == user.email).first()
     if db_user:
         raise HTTPException(status_code=400, detail="Email already registered")
     hashed_password = get_password_hash(user.password)
+    
     new_user = models.Users(
         email=user.email,
         hashed_password=hashed_password
@@ -77,7 +96,7 @@ def create_user(user: CreateUser, db: Session = Depends(get_db)):
 
 # GET /user_info - get user info
 @app.post("/user_info", status_code=201)
-def create_user(info: UserInfo, db: Session = Depends(get_db)):
+def user_info(info: UserInfo, db: Session = Depends(get_db), api_key: str = Depends(get_api_key)):
     userid = info.userid
     email = info.email
 
@@ -89,7 +108,7 @@ def create_user(info: UserInfo, db: Session = Depends(get_db)):
 
 # POST /run_cron - call this for the cron job. Does all the backend work for cron
 @app.post("/run_cron")
-def run_cron(db: Session = Depends(get_db)):
+def run_cron(db: Session = Depends(get_db), api_key: str = Depends(get_api_key)):
     tasks = db.query(models.Task).all()
 
     for task in tasks:
@@ -146,12 +165,12 @@ def run_cron(db: Session = Depends(get_db)):
 
 # GET /get_queries - return all tasks
 @app.get("/get_queries", response_model=list[TaskResponse])
-def get_queries(userid: int, db: Session = Depends(get_db)):
+def get_queries(userid: int, db: Session = Depends(get_db), api_key: str = Depends(get_api_key)):
     return db.query(models.Task).filter(models.Task.userid == userid).all()
 
 # POST /create_query - add a new task
 @app.post("/create_query", status_code=201)
-def create_query(task: TaskCreate, db: Session = Depends(get_db)):
+def create_query(task: TaskCreate, db: Session = Depends(get_db), api_key: str = Depends(get_api_key)):
     queries = db.query(models.Task).filter(models.Task.userid == task.userid).all()
 
     if len(queries) >= 3:
@@ -176,7 +195,7 @@ def create_query(task: TaskCreate, db: Session = Depends(get_db)):
 
 # PUT /update_query/:id - update an existing task
 @app.put("/update_query/{id}", status_code=200)
-def update_query(id: int, task: TaskUpdate, db: Session = Depends(get_db)):
+def update_query(id: int, task: TaskUpdate, db: Session = Depends(get_db), api_key: str = Depends(get_api_key)):
     db_task = db.query(models.Task).filter(models.Task.id == id).first()
     if not db_task:
         raise HTTPException(status_code=404, detail="Task not found")
@@ -194,7 +213,7 @@ def update_query(id: int, task: TaskUpdate, db: Session = Depends(get_db)):
 
 # DELETE /delete_query/:id - delete a task
 @app.delete("/delete_query/{id}", status_code=200)
-def delete_query(id: int, db: Session = Depends(get_db)):
+def delete_query(id: int, db: Session = Depends(get_db), api_key: str = Depends(get_api_key)):
     db_task = db.query(models.Task).filter(models.Task.id == id).first()
     if not db_task:
         raise HTTPException(status_code=404, detail="Task not found")
