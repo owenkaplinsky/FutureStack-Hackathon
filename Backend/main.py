@@ -563,12 +563,13 @@ def create_report(user_query: str, vetted_items: dict, last_report: datetime):
         - The clickable text must ALWAYS be the EXACT website name, NOT the article title, NOT the raw link.
         - Place citations immediately after the information, not at the end.
         - YOU ARE NOT ALLOWED TO CASUALLY CITE THINGS LIKE "For example, SOURCE said..." YOU ARE REQUIRED TO CITE IT AT THE END OF TALKING ABOUT THE CONTENT.
-        - YOU MUST ALWAYS INCLUDE THE LINK TO THE ARTICLE. YOU CANNOT MENTION THAT IT EXISTS WITHOUT LINKING TO IT.
 
         The goal is to provide timely updates on new developments since the last interaction, not background knowledge. The writing should feel polished, informative, and up-to-date.
 
         It is entirely okay to use multiple sources in the same paragraph. Don't always try to make one paragraph per source if it doesn't naturally flow that way.
         But, NEVER use sources in the closing paragraph.
+
+        YOU MUST ALWAYS INCLUDE THE LINK TO EVERY SINGLE ARTICLE. YOU CANNOT MENTION IT WITHOUT DIRECTLY LINKING TO IT. THIS IS A REQUIREMENT 100% OF THE TIME.
         
         Remember, 750 words MINIMUM.
         """}
