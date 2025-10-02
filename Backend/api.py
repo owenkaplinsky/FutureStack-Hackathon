@@ -9,11 +9,11 @@ from passlib.context import CryptContext
 from dotenv import load_dotenv
 import os
 
-import main
-from database.db import Base, SessionLocal, engine
-from database import models
+from . import main
+from Backend.database.db import Base, SessionLocal, engine
+from Backend.database import models
 
-from mail import send_message
+from Backend.mail import send_message
 
 pwd_context = CryptContext(schemes=["argon2"], deprecated="auto")
 
