@@ -1,9 +1,11 @@
 from fastapi import FastAPI, Depends, HTTPException, status, Request
 from fastapi.security.api_key import APIKeyHeader
+from fastapi.security import OAuth2PasswordBearer
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
-from datetime import datetime
+from datetime import datetime, timedelta
+from jose import jwt, JWTError
 from typing import Optional
 from passlib.context import CryptContext
 from dotenv import load_dotenv
@@ -32,6 +34,11 @@ app.add_middleware(
 
 load_dotenv()
 
+SECRET_KEY = os.getenv("JWT_SECRET", "dev_secret")
+ALGORITHM = "HS256"
+ACCESS_TOKEN_EXPIRE_MINUTES = 60
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
+
 API_KEY = os.getenv("AUTH_KEY")
 api_key_header = APIKeyHeader(name="AUTH_KEY", auto_error=False)
 
@@ -50,6 +57,30 @@ def get_api_key(api_key: str = Depends(api_key_header)):
         detail="Invalid or missing API Key",
     )
 
+def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
+    credentials_exception = HTTPException(
+        status_code=401,
+        detail="Could not validate credentials",
+    )
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        user_id: str = payload.get("sub")
+        if user_id is None:
+            raise credentials_exception
+    except JWTError:
+        raise credentials_exception
+
+    user = db.query(models.Users).filter(models.Users.userid == int(user_id)).first()
+    if user is None:
+        raise credentials_exception
+    return user
+
+def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
+    to_encode = data.copy()
+    expire = datetime.utcnow() + (expires_delta or timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES))
+    to_encode.update({"exp": expire})
+    return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+
 class CreateUser(BaseModel):
     email: str
     password: str
@@ -63,14 +94,10 @@ class UserInfo(BaseModel):
     email: Optional[str] = None
 
 class TaskBase(BaseModel):
-    userid: int
     title: str
     text: str
     sources: int
     last_cron: Optional[datetime] = None
-
-class TaskCreate(TaskBase):
-    userid: int
 
 class TaskUpdate(BaseModel):
     title: Optional[str] = None
@@ -95,7 +122,7 @@ def verify_password(plain_password, hashed_password):
   
 # POST /create_user - add a new user
 @app.post("/create_user", status_code=201)
-def create_user(user: CreateUser, db: Session = Depends(get_db), api_key: str = Depends(get_api_key)):
+def create_user(user: CreateUser, db: Session = Depends(get_db)):
     db_user = db.query(models.Users).filter(models.Users.email == user.email).first()
     if db_user:
         raise HTTPException(status_code=400, detail="Email already registered")
@@ -112,11 +139,13 @@ def create_user(user: CreateUser, db: Session = Depends(get_db), api_key: str = 
 
 # POST /login - log the user into their account
 @app.post("/login")
-def login(user: LoginUser, db: Session = Depends(get_db), api_key: str = Depends(get_api_key)):
+def login(user: LoginUser, db: Session = Depends(get_db)):
     db_user = db.query(models.Users).filter(models.Users.email == user.email).first()
     if not db_user or not verify_password(user.password, db_user.hashed_password):
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid email or password")
-    return {"userid": db_user.userid, "email": db_user.email}
+        raise HTTPException(status_code=401, detail="Invalid email or password")
+
+    access_token = create_access_token(data={"sub": str(db_user.userid)})
+    return {"access_token": access_token, "token_type": "bearer"}
 
 # GET /user_info - get user info
 @app.post("/user_info", status_code=201)
@@ -189,23 +218,19 @@ def run_cron(db: Session = Depends(get_db), api_key: str = Depends(get_api_key))
 
 # GET /get_queries - return all tasks
 @app.get("/get_queries", response_model=list[TaskResponse])
-def get_queries(userid: int, db: Session = Depends(get_db), api_key: str = Depends(get_api_key)):
-    return db.query(models.Task).filter(models.Task.userid == userid).all()
+def get_queries(current_user: models.Users = Depends(get_current_user), db: Session = Depends(get_db)):
+    return db.query(models.Task).filter(models.Task.userid == current_user.userid).all()
 
 # POST /create_query - add a new task
 @app.post("/create_query", status_code=201)
-async def create_query(request: Request, db: Session = Depends(get_db), api_key: str = Depends(get_api_key)):
+async def create_query(request: Request, db: Session = Depends(get_db), current_user: models.Users = Depends(get_current_user)):
     # Be tolerant: parse payload and coerce types so frontend can send simple JSON
     try:
         payload = await request.json()
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Invalid JSON: {e}")
 
-    # Extract and coerce required fields
-    try:
-        userid = int(payload.get("userid") or payload.get("userId"))
-    except Exception:
-        raise HTTPException(status_code=400, detail="Missing or invalid 'userid' field")
+    userid = current_user.userid
 
     title = payload.get("title")
     text = payload.get("text")
@@ -249,10 +274,13 @@ async def create_query(request: Request, db: Session = Depends(get_db), api_key:
 
 # PUT /update_query/:id - update an existing task
 @app.put("/update_query/{id}", status_code=200)
-def update_query(id: int, task: TaskUpdate, db: Session = Depends(get_db), api_key: str = Depends(get_api_key)):
+def update_query(id: int, task: TaskUpdate, db: Session = Depends(get_db), current_user: models.Users = Depends(get_current_user)):
     db_task = db.query(models.Task).filter(models.Task.id == id).first()
     if not db_task:
         raise HTTPException(status_code=404, detail="Task not found")
+
+    if db_task.userid != current_user.userid:
+        raise HTTPException(status_code=403, detail="Not your task")
 
     if task.title is not None:
         db_task.title = task.title
@@ -266,18 +294,21 @@ def update_query(id: int, task: TaskUpdate, db: Session = Depends(get_db), api_k
 
     return {
         "id": id,
-        "title": task.title,
-        "text": task.text,
-        "sources": task.sources,
+        "title": db_task.title,
+        "text": db_task.text,
+        "sources": db_task.sources,
         "detail": "Task updated successfully."
     }
 
 # DELETE /delete_query/:id - delete a task
 @app.delete("/delete_query/{id}", status_code=200)
-def delete_query(id: int, db: Session = Depends(get_db), api_key: str = Depends(get_api_key)):
+def delete_query(id: int, db: Session = Depends(get_db), current_user: models.Users = Depends(get_current_user)):
     db_task = db.query(models.Task).filter(models.Task.id == id).first()
     if not db_task:
         raise HTTPException(status_code=404, detail="Task not found")
+
+    if db_task.userid != current_user.userid:
+        raise HTTPException(status_code=403, detail="Not your task")
 
     db.delete(db_task)
     db.commit()
