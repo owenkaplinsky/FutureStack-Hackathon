@@ -13,13 +13,10 @@ export default function LoginPage() {
     e.preventDefault();
     setError('');
     try {
-      const response = await axios.post(
-        `${backendUrl}/login`,
-        { email, password },
-        { headers: { AUTH_KEY: process.env.REACT_APP_AUTH_KEY } }
-      );
+      const response = await axios.post(`${backendUrl}/login`, { email, password });
 
-      localStorage.setItem('userId', response.data.userid);
+      // Save the JWT access token instead of userid
+      localStorage.setItem('token', response.data.access_token);
 
       navigate('/chat');
     } catch (err) {

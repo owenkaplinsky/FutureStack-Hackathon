@@ -14,19 +14,19 @@ export default function ChatPage() {
   const [editSources, setEditSources] = useState(4);
 
   const backendUrl = process.env.REACT_APP_API_URL;
-  const userId = localStorage.getItem("userId"); // store userId when they login
-  const authHeaders = { headers: { AUTH_KEY: process.env.REACT_APP_AUTH_KEY } };
+  const token = localStorage.getItem("token");
+  const authHeaders = { headers: { Authorization: `Bearer ${token}` } };
 
   // Fetch tasks on component load
   useEffect(() => {
-    if (!userId) return;
+    if (!token) return;
     axios
-      .get(`${backendUrl}/get_queries?userid=${userId}`, authHeaders)
+      .get(`${backendUrl}/get_queries`, authHeaders)
       .then((res) => {
         setTasks(res.data);
       })
       .catch((err) => console.error("Error fetching tasks:", err));
-  }, [userId]);
+  }, [token]);
 
   const addTask = () => {
     if (!newTitle.trim() || !newTask.trim()) return;
@@ -35,7 +35,6 @@ export default function ChatPage() {
       .post(
         `${backendUrl}/create_query`,
         {
-          userid: userId,
           title: newTitle,
           text: newTask,
           sources: minSources,

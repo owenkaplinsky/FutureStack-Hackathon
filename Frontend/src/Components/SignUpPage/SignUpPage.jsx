@@ -19,8 +19,7 @@ export default function SignupPage() {
     try {
       await axios.post(
         `${backendUrl}/create_user`,
-        { email, password },
-        { headers: { AUTH_KEY: process.env.REACT_APP_AUTH_KEY } }
+        { email, password }
       );
       alert("Account created successfully! Please log in.");
       navigate('/login');
