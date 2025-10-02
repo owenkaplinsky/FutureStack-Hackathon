@@ -18,5 +18,5 @@ ENV PLAYWRIGHT_BROWSERS_PATH=/ms-playwright \
     PYTHONUNBUFFERED=1 \
     PYTHONPATH=/app
 
-# Adjust module path below to your FastAPI app entrypoint
+# Adjust module path below to your FastAPI app entrypoint 
 CMD ["uvicorn", "Backend.api:app", "--host", "0.0.0.0", "--port", "10000"]
