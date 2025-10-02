@@ -2,18 +2,18 @@ from fastapi import FastAPI, Depends, HTTPException, status, Request
 from fastapi.security.api_key import APIKeyHeader
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
-from pydantic import BaseModel, ValidationError
+from pydantic import BaseModel
 from datetime import datetime
 from typing import Optional
 from passlib.context import CryptContext
 from dotenv import load_dotenv
 import os
 
-import main
-from database.db import Base, SessionLocal, engine
-from database import models
+from . import main
+from Backend.database.db import Base, SessionLocal, engine
+from Backend.database import models
 
-from mail import send_message
+from Backend.mail import send_message
 
 pwd_context = CryptContext(schemes=["argon2"], deprecated="auto")
 
@@ -22,13 +22,9 @@ Base.metadata.create_all(bind=engine)
 app = FastAPI()
 
 # Allow frontend dev server and preflight (OPTIONS) including custom AUTH_KEY header
-origins = [
-    "http://localhost:3000",
-    "http://127.0.0.1:3000",
-]
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
