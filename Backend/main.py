@@ -564,7 +564,8 @@ def create_report(user_query: str, vetted_items: dict, last_report: datetime):
         The goal is to provide timely updates on new developments since the last interaction, not background knowledge. The writing should feel polished, informative, and up-to-date.
 
         It is entirely okay to use multiple sources in the same paragraph. Don't always try to make one paragraph per source if it doesn't naturally flow that way.
-
+        But, NEVER use sources in the closing paragraph.
+        
         Remember, 750 words MINIMUM.
         """}
     ]
