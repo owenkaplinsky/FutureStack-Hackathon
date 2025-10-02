@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import axios from "axios";
 import { FaTrash, FaTasks, FaCog } from "react-icons/fa";
 
-export default function ChatsPage() {
+export default function ChatPage() {
   const [tasks, setTasks] = useState([]);
   const [newTitle, setNewTitle] = useState("");
   const [newTask, setNewTask] = useState("");
@@ -12,14 +13,15 @@ export default function ChatsPage() {
   const [editText, setEditText] = useState("");
   const [editSources, setEditSources] = useState(4);
 
-  const backendUrl = "http://localhost:8000/api"; // Change to your backend URL
+  const backendUrl = "http://localhost:8000"; // Change to your backend URL
   const userId = localStorage.getItem("userId"); // store userId when they login
+  const authHeaders = { headers: { AUTH_KEY: process.env.REACT_APP_AUTH_KEY } };
 
   // Fetch tasks on component load
   useEffect(() => {
     if (!userId) return;
     axios
-      .get(`${backendUrl}/get_queries?userId=${userId}`)
+      .get(`${backendUrl}/get_queries?userid=${userId}`, authHeaders)
       .then((res) => {
         setTasks(res.data);
       })
@@ -30,12 +32,16 @@ export default function ChatsPage() {
     if (!newTitle.trim() || !newTask.trim()) return;
 
     axios
-      .post(`${backendUrl}/create_query`, {
-        userId,
-        title: newTitle,
-        text: newTask,
-        sources: minSources,
-      })
+      .post(
+        `${backendUrl}/create_query`,
+        {
+          userid: userId,
+          title: newTitle,
+          text: newTask,
+          sources: minSources,
+        },
+        authHeaders
+      )
       .then((res) => {
         setTasks([...tasks, res.data]); // Show new task instantly
         setNewTitle("");
@@ -46,10 +52,11 @@ export default function ChatsPage() {
   };
 
   const deleteTask = (id) => {
+    const numericid = Number(id);
     axios
-      .delete(`${backendUrl}/delete_query/${id}`)
+      .delete(`${backendUrl}/delete_query/${numericid}`, authHeaders)
       .then(() => {
-        setTasks(tasks.filter((task) => task.id !== id)); // Remove from UI instantly
+        setTasks(tasks.filter((task) => task.id !== numericid)); // Remove from UI instantly
       })
       .catch((err) => console.error("Error deleting task:", err));
   };
@@ -63,11 +70,15 @@ export default function ChatsPage() {
 
   const saveEdit = (id) => {
     axios
-      .put(`${backendUrl}/update_query/${id}`, {
-        title: editTitle,
-        text: editText,
-        sources: editSources,
-      })
+      .put(
+        `${backendUrl}/update_query/${id}`,
+        {
+          title: editTitle,
+          text: editText,
+          sources: editSources,
+        },
+        authHeaders
+      )
       .then((res) => {
         setTasks(tasks.map((task) => (task.id === id ? res.data : task)));
         setEditTaskId(null);
@@ -79,7 +90,10 @@ export default function ChatsPage() {
     <div className="min-h-screen bg-gray-900 flex flex-col">
       <header className="py-6 text-center bg-gradient-to-r from-gray-800 to-gray-900 shadow-lg">
         <h1 className="text-4xl font-bold text-white flex justify-center items-center">
-          <FaTasks className="mr-2 animate-pulse" /> AI Task Manager
+          <FaTasks className="mr-2 animate-pulse" />
+          <Link to="/" className="ml-2 hover:underline">
+            AI Task Manager
+          </Link>
         </h1>
       </header>
 
@@ -89,7 +103,7 @@ export default function ChatsPage() {
           <h2 className="text-2xl font-semibold mb-4 text-white">➕ Create New AI Task</h2>
           <input
             type="text"
-            placeholder="Task Title"
+            placeholder="Task Title..."
             value={newTitle}
             onChange={(e) => setNewTitle(e.target.value)}
             className="w-full border border-gray-600 p-3 rounded-lg mb-4 bg-gray-900 text-white"
@@ -101,7 +115,18 @@ export default function ChatsPage() {
             onChange={(e) => setNewTask(e.target.value)}
             className="w-full border border-gray-600 p-3 rounded-lg mb-4 bg-gray-900 text-white"
           />
-          <label className="block mb-1 text-white">Minimum sources: {minSources}</label>
+          <label className="block mb-1 text-white flex items-center">
+            <span>Minimum sources: {minSources}</span>
+            <span className="ml-2 relative group">
+              <span className="text-sm text-gray-400 cursor-pointer">?</span>
+              <div
+                role="tooltip"
+                className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-64 bg-gray-700 text-white text-xs p-2 rounded shadow-lg opacity-0 pointer-events-none group-hover:opacity-100 group-focus:opacity-100 transition-opacity z-50"
+              >
+                Minimum amount of sources collected before user is sent a report.
+              </div>
+            </span>
+          </label>
           <input
             type="range"
             min="4"
@@ -153,7 +178,18 @@ export default function ChatsPage() {
                       onChange={(e) => setEditText(e.target.value)}
                       className="w-full border border-gray-600 p-2 rounded-lg mb-2 bg-gray-800 text-white"
                     />
-                    <label className="block text-white mb-1">Minimum sources</label>
+                    <label className="block text-white mb-1 flex items-center">
+                      <span>Minimum sources</span>
+                      <span className="ml-2 relative group">
+                        <span className="text-sm text-gray-400 cursor-pointer">?</span>
+                        <div
+                          role="tooltip"
+                          className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-64 bg-gray-700 text-white text-xs p-2 rounded shadow-lg opacity-0 pointer-events-none group-hover:opacity-100 group-focus:opacity-100 transition-opacity z-50"
+                        >
+                          Minimum amount of sources collected before user is sent a report.
+                        </div>
+                      </span>
+                    </label>
                     <input
                       type="range"
                       min="4"

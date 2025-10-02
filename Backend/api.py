@@ -1,7 +1,8 @@
-from fastapi import FastAPI, Depends, HTTPException, status
+from fastapi import FastAPI, Depends, HTTPException, status, Request
 from fastapi.security.api_key import APIKeyHeader
+from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
-from pydantic import BaseModel
+from pydantic import BaseModel, ValidationError
 from datetime import datetime
 from typing import Optional
 from passlib.context import CryptContext
@@ -14,11 +15,24 @@ from database import models
 
 from mail import send_message
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+pwd_context = CryptContext(schemes=["argon2"], deprecated="auto")
 
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
+
+# Allow frontend dev server and preflight (OPTIONS) including custom AUTH_KEY header
+origins = [
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+]
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 load_dotenv()
 
@@ -44,6 +58,10 @@ class CreateUser(BaseModel):
     email: str
     password: str
 
+class LoginUser(BaseModel):
+    email: str
+    password: str
+
 class UserInfo(BaseModel):
     userid: Optional[int] = None
     email: Optional[str] = None
@@ -53,7 +71,7 @@ class TaskBase(BaseModel):
     title: str
     text: str
     sources: int
-    last_cron: datetime
+    last_cron: Optional[datetime] = None
 
 class TaskCreate(TaskBase):
     userid: int
@@ -72,6 +90,8 @@ class TaskResponse(TaskBase):
         orm_mode = True
 
 def get_password_hash(password):
+    if not isinstance(password, str):
+        password = str(password)
     return pwd_context.hash(password)
 
 def verify_password(plain_password, hashed_password):
@@ -93,6 +113,14 @@ def create_user(user: CreateUser, db: Session = Depends(get_db), api_key: str = 
     db.commit()
     db.refresh(new_user)
     return {"detail": "User created successfully."}
+
+# POST /login - log the user into their account
+@app.post("/login")
+def login(user: LoginUser, db: Session = Depends(get_db), api_key: str = Depends(get_api_key)):
+    db_user = db.query(models.Users).filter(models.Users.email == user.email).first()
+    if not db_user or not verify_password(user.password, db_user.hashed_password):
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid email or password")
+    return {"userid": db_user.userid, "email": db_user.email}
 
 # GET /user_info - get user info
 @app.post("/user_info", status_code=201)
@@ -170,28 +198,58 @@ def get_queries(userid: int, db: Session = Depends(get_db), api_key: str = Depen
 
 # POST /create_query - add a new task
 @app.post("/create_query", status_code=201)
-def create_query(task: TaskCreate, db: Session = Depends(get_db), api_key: str = Depends(get_api_key)):
-    queries = db.query(models.Task).filter(models.Task.userid == task.userid).all()
+async def create_query(request: Request, db: Session = Depends(get_db), api_key: str = Depends(get_api_key)):
+    # Be tolerant: parse payload and coerce types so frontend can send simple JSON
+    try:
+        payload = await request.json()
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Invalid JSON: {e}")
 
+    # Extract and coerce required fields
+    try:
+        userid = int(payload.get("userid") or payload.get("userId"))
+    except Exception:
+        raise HTTPException(status_code=400, detail="Missing or invalid 'userid' field")
+
+    title = payload.get("title")
+    text = payload.get("text")
+    try:
+        sources = int(payload.get("sources", 4))
+    except Exception:
+        sources = 4
+
+    if not title or not text:
+        raise HTTPException(status_code=400, detail="'title' and 'text' are required")
+
+    queries = db.query(models.Task).filter(models.Task.userid == userid).all()
     if len(queries) >= 3:
-        raise HTTPException(
-            status_code=409,
-            detail="User already has 3 or more tasks; cannot create another."
-        )
+        raise HTTPException(status_code=409, detail="User already has 3 or more tasks; cannot create another.")
 
+    searches = main.create_query(text)
     new_task = models.Task(
-        userid=task.userid,
-        title=task.title,
-        text=task.text,
-        sources=task.sources,
-        searches=main.create_query(task.text),
-        last_cron=task.last_cron,
-        last_report=task.last_cron
+        userid=userid,
+        title=title,
+        text=text,
+        sources=sources,
+        searches=searches,
+        last_cron=datetime.now(),
+        last_report=datetime.now(),
     )
     db.add(new_task)
     db.commit()
     db.refresh(new_task)
-    return {"detail": "Task created successfully."}
+
+    # Return the created task object (frontend expects the new item)
+    return {
+        "id": new_task.id,
+        "userid": new_task.userid,
+        "title": new_task.title,
+        "text": new_task.text,
+        "sources": new_task.sources,
+        "searches": new_task.searches,
+        "last_cron": new_task.last_cron,
+        "last_report": new_task.last_report,
+    }
 
 # PUT /update_query/:id - update an existing task
 @app.put("/update_query/{id}", status_code=200)
@@ -209,7 +267,14 @@ def update_query(id: int, task: TaskUpdate, db: Session = Depends(get_db), api_k
 
     db.commit()
     db.refresh(db_task)
-    return {"detail": "Task updated successfully."}
+
+    return {
+        "id": id,
+        "title": task.title,
+        "text": task.text,
+        "sources": task.sources,
+        "detail": "Task updated successfully."
+    }
 
 # DELETE /delete_query/:id - delete a task
 @app.delete("/delete_query/{id}", status_code=200)

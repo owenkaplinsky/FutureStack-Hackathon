@@ -1,6 +1,6 @@
 import logo from './logo.svg';
 import './App.css';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { Routes, Route } from 'react-router-dom';
 import ChatPage from './Components/ChatPage/Chatpage';
 import LandingPage from './Components/LandingPage/LandingPage';
 import SignUpPage from './Components/SignUpPage/SignUpPage';
@@ -21,9 +21,16 @@ function App() {
             </ProtectedRoute>
           }
         />
+        <Route
+          path="/chat"
+          element={
+            <ProtectedRoute>
+              <ChatPage />
+            </ProtectedRoute>
+          }
+        />
       </Routes>
-   
-   </div>
+    </div>
   );
 }
 
