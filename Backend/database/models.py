@@ -30,6 +30,6 @@ class Items(Base):
 # User information
 class Users(Base):
     __tablename__ = "users"
-
+    hashed_password = Column(String, nullable=False)
     userid = Column(Integer, primary_key=True, nullable=False, index=True, autoincrement=True)
     email = Column(String, nullable=False)

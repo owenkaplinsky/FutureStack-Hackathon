@@ -3,12 +3,14 @@ from sqlalchemy.orm import Session
 from pydantic import BaseModel
 from datetime import datetime
 from typing import Optional
-
+from passlib.context import CryptContext
 import main
 from database.db import Base, SessionLocal, engine
 from database import models
 
 from mail import send_message
+
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 Base.metadata.create_all(bind=engine)
 
@@ -23,6 +25,7 @@ def get_db():
 
 class CreateUser(BaseModel):
     email: str
+    password: str
 
 class UserInfo(BaseModel):
     userid: Optional[int] = None
@@ -51,11 +54,21 @@ class TaskResponse(TaskBase):
     class Config:
         orm_mode = True
 
+def get_password_hash(password):
+    return pwd_context.hash(password)
+
+def verify_password(plain_password, hashed_password):
+    return pwd_context.verify(plain_password, hashed_password)
 # POST /create_user - add a new user
 @app.post("/create_user", status_code=201)
 def create_user(user: CreateUser, db: Session = Depends(get_db)):
+    db_user = db.query(models.Users).filter(models.Users.email == user.email).first()
+    if db_user:
+        raise HTTPException(status_code=400, detail="Email already registered")
+    hashed_password = get_password_hash(user.password)
     new_user = models.Users(
-        email=user.email
+        email=user.email,
+        hashed_password=hashed_password
     )
     db.add(new_user)
     db.commit()
