@@ -88,7 +88,6 @@ pytz==2025.2
 PyYAML==6.0.2
 pyzmq==27.0.1
 referencing==0.36.2
-regex==2025.7.34
 requests==2.32.4
 requests-file==2.1.0
 rich==14.1.0
@@ -112,9 +111,7 @@ tinysegmenter==0.3
 tldextract==5.3.0
 tomlkit==0.13.3
 tornado==6.5.1
-tqdm==4.67.1
 traitlets==5.14.3
-typer==0.16.0
 typing-inspection==0.4.1
 typing_extensions==4.14.1
 tzdata==2025.2
