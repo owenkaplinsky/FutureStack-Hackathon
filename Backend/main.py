@@ -19,6 +19,10 @@ from playwright.sync_api import sync_playwright, Error as PlaywrightError
 
 
 def get_news_feed(query: str, limit: int = 15, hours: int = 6):
+    # `when:0h` will give results from all times, so if it's 0 hours then return
+    if hours == 0:
+        return {}, ""
+    
     # Encode the query into a URL
     encoded_query = urllib.parse.quote(query)
     feed_url = f"https://news.google.com/rss/search?q={encoded_query}+when:{hours}h"
