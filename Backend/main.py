@@ -21,7 +21,8 @@ from playwright.sync_api import sync_playwright, Error as PlaywrightError
 def get_news_feed(query: str, limit: int = 15, start_date: datetime = datetime(2025, 9, 25, 0, 0, 0)):
     # Encode the query into a URL
     encoded_query = urllib.parse.quote(query)
-    feed_url = f"https://news.google.com/rss/search?q={encoded_query}"
+    time_diff = int((datetime.now() - start_date).total_seconds() / 3600)
+    feed_url = f"https://news.google.com/rss/search?q={encoded_query}+when:{time_diff}h"
 
     feed = feedparser.parse(feed_url)
     length = len(feed.entries)
@@ -39,10 +40,6 @@ def get_news_feed(query: str, limit: int = 15, start_date: datetime = datetime(2
             continue
 
         entry_date = datetime.fromtimestamp(time.mktime(published_parsed))
-
-        # Filter: skip if before start_date
-        if start_date and entry_date < start_date:
-            continue
 
         title = entry.title
         link = entry.link
@@ -90,6 +87,8 @@ start_messages = [
     - "AI governance oversight research initiatives"
 
     These are all relevant, but capture different aspects of the request. 
+     
+    YOU ARE REQUIRED TO MAKE 7 OF THEM. THIS IS NOT NEGOTIABLE. NO LESS THAN SEVEN.
 
     Aim to reduce false negatives at all costs. If an item has ANY possibility of being relevant, you must include it. ONLY remove the titles that are OBVIOUSLY irrelevant to the user's request. And by OBVIOUSLY, this means ENTIRELY irrelevant, not just mostly.
     """}
@@ -287,7 +286,7 @@ def refresh_data(user_query: str, searches: list, last_time: datetime):
 
     for search in searches:
         # Stop searching if we already have a ton of items from this round
-        if valid_items >= 15:
+        if valid_items >= 25:
             break
 
         output_dict, output_str = get_news_feed(search, start_date=last_time)
@@ -297,7 +296,7 @@ def refresh_data(user_query: str, searches: list, last_time: datetime):
             print("=== NO NEW ITEMS ===")
             continue
         else:
-            print("=== NEW ITEMS ===")
+            print(f"=== {len(output_dict)} NEW ITEMS ===")
 
         valid_items += len(output_dict)
 
@@ -339,7 +338,7 @@ def refresh_data(user_query: str, searches: list, last_time: datetime):
     #####################
 
 
-    print("=== FILTER ROUND TWO ===")
+    print(f"=== FILTER ROUND TWO ({len(chosen_dict)} ITEMS) ===")
     print()
 
     # Google News is annoying. This gets the actual URL instead of Google's redirect
@@ -418,7 +417,7 @@ def refresh_data(user_query: str, searches: list, last_time: datetime):
 
         # Article is empty or a stub
         if (len(content) < 200):
-            print(f"[DEBUG] Skipping {item} ({link}), content length={len(content)}, content preview={content[:100]}")
+            print(f"! Item is very short or empty !")
             continue
 
         messages = list(start_messages) + [
