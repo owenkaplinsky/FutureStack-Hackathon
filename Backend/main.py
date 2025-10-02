@@ -65,7 +65,7 @@ start_messages = [
 
     Workflow:
     1. User sends request.
-    2. Use the 'Hook' tool to create EXACTLY 7 distinct searches. YOU MAY NOT DO LESS THAN 7.
+    2. Use the 'Hook' tool to create EXACTLY 7 distinct searches.
     3. You will receive the top 5 results per search. Use 'Mark' to flag relevant ones.
     
     Rules for searches:
@@ -89,6 +89,7 @@ start_messages = [
     These are all relevant, but capture different aspects of the request. 
      
     YOU ARE REQUIRED TO MAKE 7 OF THEM. THIS IS NOT NEGOTIABLE. NO LESS THAN SEVEN.
+    These must be VERY different rom each other. The entire point is that they capture different items in the RSS feeds, and if they're too similar they will overlap - which is bad.
 
     Aim to reduce false negatives at all costs. If an item has ANY possibility of being relevant, you must include it. ONLY remove the titles that are OBVIOUSLY irrelevant to the user's request. And by OBVIOUSLY, this means ENTIRELY irrelevant, not just mostly.
     """}
@@ -285,10 +286,6 @@ def refresh_data(user_query: str, searches: list, last_time: datetime):
     valid_items = 0
 
     for search in searches:
-        # Stop searching if we already have a ton of items from this round
-        if valid_items >= 25:
-            break
-
         output_dict, output_str = get_news_feed(search, start_date=last_time)
 
         # If there are no results
@@ -510,6 +507,10 @@ def refresh_data(user_query: str, searches: list, last_time: datetime):
         else:
             print("! ITEM FAILED !")
 
+        # We don't need more than this!
+        if len(passed_items) >= 10:
+            break
+
     return passed_items
 
 
@@ -557,8 +558,9 @@ def create_report(user_query: str, vetted_items: dict, last_report: datetime):
         - YOU ARE NOT ALLOWED TO CASUALLY CITE THINGS LIKE "For example, SOURCE said..." YOU ARE REQUIRED TO CITE IT AT THE END OF TALKING ABOUT THE CONTENT.
         - YOU MUST ALWAYS INCLUDE THE LINK TO THE ARTICLE. YOU CANNOT MENTION THAT IT EXISTS WITHOUT LINKING TO IT.
 
-        CONTEXT:
         The goal is to provide timely updates on new developments since the last interaction, not background knowledge. The writing should feel polished, informative, and up-to-date.
+
+        It is entirely okay to use multiple sources in the same paragraph. Don't always try to make one paragraph per source if it doesn't naturally flow that way.
 
         Remember, 750 words MINIMUM.
         """}
