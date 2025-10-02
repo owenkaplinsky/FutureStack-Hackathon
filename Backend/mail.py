@@ -2,17 +2,19 @@ from google.oauth2.credentials import Credentials
 from google.auth.transport.requests import Request
 from googleapiclient.discovery import build
 from email.mime.text import MIMEText
+from dotenv import load_dotenv
 import base64
 import os
 import json
 
 SCOPES = ['https://www.googleapis.com/auth/gmail.send']
 
+load_dotenv()
+
+token_json = os.getenv("GOOGLE_TOKEN_JSON")
+
 def get_gmail_service():
     creds = None
-
-    # Load token.json contents from env var
-    token_json = os.getenv("GOOGLE_TOKEN_JSON")
 
     if token_json:
         creds = Credentials.from_authorized_user_info(json.loads(token_json), SCOPES)

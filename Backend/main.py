@@ -18,11 +18,10 @@ from playwright.sync_api import sync_playwright, Error as PlaywrightError
 ####################
 
 
-def get_news_feed(query: str, limit: int = 15, start_date: datetime = datetime(2025, 9, 25, 0, 0, 0)):
+def get_news_feed(query: str, limit: int = 15, hours: int = 6):
     # Encode the query into a URL
     encoded_query = urllib.parse.quote(query)
-    time_diff = int((datetime.now() - start_date).total_seconds() / 3600)
-    feed_url = f"https://news.google.com/rss/search?q={encoded_query}+when:{time_diff}h"
+    feed_url = f"https://news.google.com/rss/search?q={encoded_query}+when:{hours}h"
 
     feed = feedparser.parse(feed_url)
     length = len(feed.entries)
@@ -288,8 +287,12 @@ def refresh_data(user_query: str, searches: list, last_time: datetime):
 
     valid_items = 0
 
+    hours = int((datetime.now() - last_time).total_seconds() / 3600)
+
+    print(f"=== {hours} HAVE PASSED ===")
+
     for search in searches:
-        output_dict, output_str = get_news_feed(search, start_date=last_time)
+        output_dict, output_str = get_news_feed(search, hours=hours)
 
         # If there are no results
         if output_str == '':
@@ -338,6 +341,7 @@ def refresh_data(user_query: str, searches: list, last_time: datetime):
     #####################
 
 
+    print()
     print(f"=== FILTER ROUND TWO ({len(chosen_dict)} ITEMS) ===")
     print()
 
