@@ -253,7 +253,10 @@ def create_query(user_query: str):
 
     # Initial chat, get RSS setup
     _, _, tool_contents = chat(messages, start_tools, True)
-    searches = json.loads(tool_contents)["searches"]
+    if isinstance(tool_contents, str):
+        tool_contents = json.loads(tool_contents)
+
+    searches = tool_contents["searches"]
 
     return searches
 

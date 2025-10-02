@@ -13,11 +13,15 @@ export default function SignupPage() {
     e.preventDefault();
     setError('');
     if (password.length < 6) {
-        setError("Password must be at least 6 characters long.");
-        return;
+      setError("Password must be at least 6 characters long.");
+      return;
     }
     try {
-      await axios.post(`${backendUrl}/create_user`, { email, password });
+      await axios.post(
+        `${backendUrl}/create_user`,
+        { email, password },
+        { headers: { AUTH_KEY: process.env.REACT_APP_AUTH_KEY } }
+      );
       alert("Account created successfully! Please log in.");
       navigate('/login');
     } catch (err) {

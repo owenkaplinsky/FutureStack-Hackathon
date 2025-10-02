@@ -1,10 +1,35 @@
 import logo from './logo.svg';
 import './App.css';
-import ChatsPage from './Components/ChatPage/Chatpage';
+import { Routes, Route } from 'react-router-dom';
+import ChatPage from './Components/ChatPage/Chatpage';
+import LandingPage from './Components/LandingPage/LandingPage';
+import SignUpPage from './Components/SignUpPage/SignUpPage';
+import LoginPage from './Components/LoginPage/LoginPage';
+import { ProtectedRoute } from './Components/ProtectedRoute/ProtectedRoute';
 function App() {
   return (
-    <div className="App">
-      <ChatsPage />
+    <div>
+      <Routes>
+        <Route path="/" element={<LandingPage />} />
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/signup" element={<SignUpPage />} />
+        <Route
+          path="/tasks"
+          element={
+            <ProtectedRoute>
+              <ChatPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/chat"
+          element={
+            <ProtectedRoute>
+              <ChatPage />
+            </ProtectedRoute>
+          }
+        />
+      </Routes>
     </div>
   );
 }

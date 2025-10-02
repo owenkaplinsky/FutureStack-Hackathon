@@ -13,7 +13,11 @@ export default function LoginPage() {
     e.preventDefault();
     setError('');
     try {
-      const response = await axios.post(`${backendUrl}/login`, { email, password });
+      const response = await axios.post(
+        `${backendUrl}/login`,
+        { email, password },
+        { headers: { AUTH_KEY: process.env.REACT_APP_AUTH_KEY } }
+      );
       
       localStorage.setItem('userId', response.data.userid);
 
