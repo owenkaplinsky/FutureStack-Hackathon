@@ -7,7 +7,7 @@ export default function SignupPage() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const navigate = useNavigate();
-  const backendUrl = "http://localhost:8000";
+  const backendUrl = process.env.REACT_APP_API_URL;
 
   const handleSignup = async (e) => {
     e.preventDefault();

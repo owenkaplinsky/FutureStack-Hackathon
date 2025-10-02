@@ -13,7 +13,7 @@ export default function ChatPage() {
   const [editText, setEditText] = useState("");
   const [editSources, setEditSources] = useState(4);
 
-  const backendUrl = "http://localhost:8000"; // Change to your backend URL
+  const backendUrl = process.env.REACT_APP_API_URL;
   const userId = localStorage.getItem("userId"); // store userId when they login
   const authHeaders = { headers: { AUTH_KEY: process.env.REACT_APP_AUTH_KEY } };
 

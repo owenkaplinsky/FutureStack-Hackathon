@@ -7,7 +7,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const navigate = useNavigate();
-  const backendUrl = "http://localhost:8000"; 
+  const backendUrl = process.env.REACT_APP_API_URL;
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -18,7 +18,7 @@ export default function LoginPage() {
         { email, password },
         { headers: { AUTH_KEY: process.env.REACT_APP_AUTH_KEY } }
       );
-      
+
       localStorage.setItem('userId', response.data.userid);
 
       navigate('/chat');
