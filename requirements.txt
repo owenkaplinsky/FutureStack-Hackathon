@@ -33,6 +33,9 @@ ffmpy==0.6.1
 filelock==3.18.0
 fonttools==4.59.0
 fsspec==2025.7.0
+google-auth==2.34.0
+google-auth-oauthlib==1.2.1
+google-api-python-client==2.151.0
 googlesearch-python==1.3.0
 greenlet==3.2.4
 groovy==0.1.2
