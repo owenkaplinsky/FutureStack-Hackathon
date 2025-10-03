@@ -1,5 +1,9 @@
 # Proactive AI
 
+## Video
+
+[![](https://img.youtube.com/vi/0aE1eG18v_4/0.jpg)](https://www.youtube.com/watch?v=0aE1eG18v_4)
+
 ## Problem Statement
 
 Normally, you have to message LLMs if you want information, such as up-to-date news. Recently, sites like ChatGPT have added features such as scheduling messages, where the AI sends you a message at a certain time. The issue with this is that these are always at a set time, and don't have custom triggers. But what if you want to know when something happens dynamically - something that isn't time dependent and isn't predictable?
