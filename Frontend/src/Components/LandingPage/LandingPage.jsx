@@ -14,9 +14,21 @@ export default function LandingPage() {
         <div className="bg-gray-800 p-8 rounded-lg shadow-lg mb-8">
           <FaRocket className="text-5xl text-blue-500 mx-auto mb-4" />
           <h2 className="text-3xl font-semibold mb-4">What is Proactive AI?</h2>
-          <p className="text-lg text-gray-300">
+          <p className="text-lg text-gray-300 mb-6">
             Proactive AI turns a passive LLM into a dynamic agent that filters the noise from the signal, delivering only what matters to you. It autonomously monitors information online and creates actionable reports, so you can stay informed without being online 24/7.
           </p>
+
+          {/* Embedded YouTube Video */}
+          <div className="aspect-w-16 aspect-h-9 mb-8">
+            <iframe
+              className="w-full h-96 rounded-lg"
+              src="https://www.youtube.com/embed/0aE1eG18v_4"
+              title="YouTube video"
+              frameBorder="0"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+            ></iframe>
+          </div>
         </div>
 
         <div className="grid md:grid-cols-2 gap-8 mb-12">
