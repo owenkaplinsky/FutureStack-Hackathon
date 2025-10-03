@@ -90,8 +90,11 @@ class LoginUser(BaseModel):
     password: str
 
 class UserInfo(BaseModel):
-    userid: Optional[int] = None
-    email: Optional[str] = None
+    userid: int
+    email: str
+    active_count: int
+    reports_sent: int
+    last_time: Optional[datetime] = None
 
 class TaskBase(BaseModel):
     title: str
@@ -132,7 +135,9 @@ def create_user(user: CreateUser, db: Session = Depends(get_db)):
     
     new_user = models.Users(
         email=user.email,
-        hashed_password=hashed_password
+        hashed_password=hashed_password,
+        active_count=0,
+        reports_sent=0,
     )
     db.add(new_user)
     db.commit()
@@ -150,16 +155,15 @@ def login(user: LoginUser, db: Session = Depends(get_db)):
     return {"access_token": access_token, "token_type": "bearer"}
 
 # GET /user_info - get user info
-@app.post("/user_info", status_code=201)
-def user_info(info: UserInfo, db: Session = Depends(get_db), api_key: str = Depends(get_api_key)):
-    userid = info.userid
-    email = info.email
-
-    # Return the user info type that was not given
-    if userid != None:
-        return db.query(models.Users).filter(models.Users.userid == userid).first().email
-    else:
-        return db.query(models.Users).filter(models.Users.email == email).first().userid
+@app.get("/user_info", response_model=UserInfo)
+def user_info(current_user: models.Users = Depends(get_current_user)):
+    return {
+        "userid": current_user.userid,
+        "email": current_user.email,
+        "active_count": current_user.active_count,
+        "reports_sent": current_user.reports_sent,
+        "last_time": current_user.last_time,
+    }
 
 # POST /run_cron - call this for the cron job. Does all the backend work for cron
 @app.post("/run_cron")
@@ -220,9 +224,14 @@ def run_cron(db: Session = Depends(get_db), api_key: str = Depends(get_api_key))
 
                     db.query(models.Items).filter(models.Items.taskid == id).delete()
 
-                    # FIX: re-fetch the task in this session before updating
+                    # Re-fetch the task in this session before updating
                     db_task = db.query(models.Task).filter(models.Task.id == id).first()
                     db_task.last_report = datetime.utcnow()
+                    db_task.reports_sent += 1
+
+                    db_user = db.query(models.Users).filter(models.Users.userid == userid).first()
+                    db_user.reports_sent += 1
+                    db_user.last_time = datetime.utcnow()
                 else:
                     for name, link, date, reason in new_items:
                         new_item = models.Items(
@@ -236,7 +245,6 @@ def run_cron(db: Session = Depends(get_db), api_key: str = Depends(get_api_key))
                         )
                         db.add(new_item)
 
-                # Always update last_cron in this session
                 db_task = db.query(models.Task).filter(models.Task.id == id).first()
                 db_task.last_cron = datetime.utcnow()
 
@@ -291,8 +299,12 @@ async def create_query(request: Request, db: Session = Depends(get_db), current_
         searches=searches,
         last_cron=datetime.now(),
         last_report=datetime.now(),
-        contact=contact
+        contact=contact,
+        reports_sent=0,
     )
+
+    current_user.active_count += 1
+
     db.add(new_task)
     db.commit()
     db.refresh(new_task)
@@ -350,6 +362,9 @@ def delete_query(id: int, db: Session = Depends(get_db), current_user: models.Us
 
     if db_task.userid != current_user.userid:
         raise HTTPException(status_code=403, detail="Not your task")
+    
+    if current_user.active_count > 0:
+        current_user.active_count -= 1
 
     db.delete(db_task)
     db.commit()

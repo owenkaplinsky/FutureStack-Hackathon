@@ -14,6 +14,7 @@ class Task(Base):
     last_cron = Column(DateTime, nullable=False)
     last_report = Column(DateTime, nullable=False)
     contact = Column(Integer, nullable=False)
+    reports_sent = Column(Integer, nullable=False)
 
 # Items that went through both filters and are waiting to be used
 class Items(Base):
@@ -33,4 +34,7 @@ class Users(Base):
     __tablename__ = "users"
     hashed_password = Column(String, nullable=False)
     userid = Column(Integer, primary_key=True, nullable=False, index=True, autoincrement=True)
-    email = Column(String, nullable=False)
+    email = Column(String, nullable=False, unique=True)
+    active_count = Column(Integer, nullable=False)
+    reports_sent = Column(Integer, nullable=False)
+    last_time = Column(DateTime)
