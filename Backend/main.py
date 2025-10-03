@@ -90,11 +90,12 @@ start_messages = [
     - "AI governance oversight research initiatives"
 
     These are all relevant, but capture different aspects of the request. 
-     
-    YOU ARE REQUIRED TO MAKE 7 OF THEM. THIS IS NOT NEGOTIABLE. NO LESS THAN SEVEN.
+    
     These must be VERY different rom each other. The entire point is that they capture different items in the RSS feeds, and if they're too similar they will overlap - which is bad.
 
     Aim to reduce false negatives at all costs. If an item has ANY possibility of being relevant, you must include it. ONLY remove the titles that are OBVIOUSLY irrelevant to the user's request. And by OBVIOUSLY, this means ENTIRELY irrelevant, not just mostly.
+    
+    YOU ARE REQUIRED TO MAKE 7 OF THEM. THIS IS NOT NEGOTIABLE. NO LESS THAN SEVEN. YOU MUST DO THIS.
     """}
 ]
 
@@ -253,13 +254,16 @@ def create_query(user_query: str):
     """
 
     messages = list(start_messages) + [{"role": "user", "content": user_query}]
+    searches = []
+    attempts = 0
 
-    # Initial chat, get RSS setup
-    _, _, tool_contents = chat(messages, start_tools, True)
-    if isinstance(tool_contents, str):
-        tool_contents = json.loads(tool_contents)
+    while attempts < 3 and len(searches) < 7:
+        _, _, tool_contents = chat(messages, start_tools, True)
+        if isinstance(tool_contents, str):
+            tool_contents = json.loads(tool_contents)
 
-    searches = tool_contents["searches"]
+        searches = tool_contents["searches"]
+        attempts += 1
 
     return searches
 
@@ -428,7 +432,7 @@ def refresh_data(user_query: str, searches: list, last_time: datetime):
             print(f"! Item is very short or empty !")
             continue
 
-        messages = list(start_messages) + [
+        messages = [
             {
                 "role": "assistant",
                 "content": f"""
@@ -548,7 +552,7 @@ def create_report(user_query: str, vetted_items: dict, last_report: datetime):
             full += f"=== ITEM INFO (LLM generated) ===\n{reason}\n\n"
         return full
 
-    report_messages = list(start_messages) + [
+    report_messages = [
         {"role": "assistant", "content": f"""
         {create_content_str(vetted_items)}
         These are all items relevant to the query: '{user_query}'.

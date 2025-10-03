@@ -8,6 +8,7 @@ export default function ChatPage() {
   const [newTitle, setNewTitle] = useState("");
   const [newTask, setNewTask] = useState("");
   const [minSources, setMinSources] = useState(4);
+  const [minContact, setMinContact] = useState(0);
   const [editTaskId, setEditTaskId] = useState(null);
   const [editTitle, setEditTitle] = useState("");
   const [editText, setEditText] = useState("");
@@ -16,6 +17,17 @@ export default function ChatPage() {
   const backendUrl = process.env.REACT_APP_API_URL;
   const token = localStorage.getItem("token");
   const authHeaders = { headers: { Authorization: `Bearer ${token}` } };
+
+  const displayMap = {
+    0: "Immediately",
+    1: "Twice a day",
+    2: "Once a day",
+    3: "Once every 2 days",
+    4: "Once every 3 days",
+    5: "Once every 4 days",
+    6: "Once every 5 days",
+    7: "Once a week",
+  };
 
   // Fetch tasks on component load
   useEffect(() => {
@@ -46,6 +58,7 @@ export default function ChatPage() {
         setNewTitle("");
         setNewTask("");
         setMinSources(4);
+        setMinContact(0);
       })
       .catch((err) => console.error("Error adding task:", err));
   };
@@ -100,6 +113,9 @@ export default function ChatPage() {
         {/* Create Task */}
         <div className="bg-gray-800 p-6 rounded-xl shadow-lg max-w-xl w-full mb-10">
           <h2 className="text-2xl font-semibold mb-4 text-white">➕ Create New AI Task</h2>
+          <label className="block mb-1 text-white flex items-center">
+            <span>Title</span>
+          </label>
           <input
             type="text"
             placeholder="Task Title..."
@@ -107,6 +123,20 @@ export default function ChatPage() {
             onChange={(e) => setNewTitle(e.target.value)}
             className="w-full border border-gray-600 p-3 rounded-lg mb-4 bg-gray-900 text-white"
           />
+          <label className="block mb-1 text-white flex items-center">
+            <span>Description</span>
+            <span className="ml-2 relative group">
+              <span className="text-sm text-gray-400 cursor-pointer">
+                💡
+              </span>
+              <div
+                role="tooltip"
+                className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-64 bg-gray-700 text-white text-xs p-2 rounded shadow-lg opacity-0 pointer-events-none group-hover:opacity-100 group-focus:opacity-100 transition-opacity z-50"
+              >
+                Niche topics may take a long time to find anything. Try to balance specificity and generality!
+              </div>
+            </span>
+          </label>
           <input
             type="text"
             placeholder="Describe your AI task..."
@@ -132,6 +162,26 @@ export default function ChatPage() {
             max="8"
             value={minSources}
             onChange={(e) => setMinSources(Number(e.target.value))}
+            className="w-full accent-white mb-4"
+          />
+          <label className="block mb-1 text-white flex items-center">
+            <span>How often: {displayMap[minContact]}</span>
+            <span className="ml-2 relative group">
+              <span className="text-sm text-gray-400 cursor-pointer">?</span>
+              <div
+                role="tooltip"
+                className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-64 bg-gray-700 text-white text-xs p-2 rounded shadow-lg opacity-0 pointer-events-none group-hover:opacity-100 group-focus:opacity-100 transition-opacity z-50"
+              >
+                The minimum delay between sending the user an email.
+              </div>
+            </span>
+          </label>
+          <input
+            type="range"
+            min="0"
+            max="7"
+            value={minContact}
+            onChange={(e) => setMinContact(Number(e.target.value))}
             className="w-full accent-white mb-4"
           />
           <button
@@ -162,6 +212,7 @@ export default function ChatPage() {
                 </div>
                 <p className="text-gray-300 mt-2">{task.text}</p>
                 <p className="text-gray-400">Min sources: {task.sources}</p>
+                <p className="text-gray-400">Min contact: {displayMap[task.contact]}</p>
 
                 {editTaskId === task.id && (
                   <div className="bg-gray-900 p-4 mt-4 rounded-lg">
