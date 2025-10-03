@@ -81,6 +81,26 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     to_encode.update({"exp": expire})
     return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
 
+onboarding_message = f"""
+<!DOCTYPE html>
+<html>
+  <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+    <h2 style="color: #2c3e50;">Welcome!</h2>
+
+    <p>Thank you for joining our service - we're excited to have you on board!</p>
+
+    <p>With your new account, you'll be able to:</p>
+    <ul>
+      <li>Create and manage up to 3 custom tasks.</li>
+      <li>Receive timely reports delivered straight to your inbox.</li>
+      <li>Stay up to date with the latest insights tailored to your needs.</li>
+    </ul>
+
+    <p>To get started, simply log in to your dashboard and set up your first query!</p>
+  </body>
+</html>
+"""
+
 class CreateUser(BaseModel):
     email: str
     password: str
@@ -142,6 +162,13 @@ def create_user(user: CreateUser, db: Session = Depends(get_db)):
     db.add(new_user)
     db.commit()
     db.refresh(new_user)
+
+    send_message(
+        to=user.email,
+        subject=f"Welcome to Proactive AI!",
+        message_text=onboarding_message
+    )
+    
     return {"detail": "User created successfully."}
 
 # POST /login - log the user into their account
