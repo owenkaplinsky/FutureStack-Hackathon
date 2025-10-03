@@ -2,7 +2,9 @@
 
 ## Video
 
-[![](https://img.youtube.com/vi/0aE1eG18v_4/0.jpg)](https://www.youtube.com/watch?v=0aE1eG18v_4)
+<a href="https://www.youtube.com/watch?v=0aE1eG18v_4">
+  <img src="https://img.youtube.com/vi/0aE1eG18v_4/maxresdefault.jpg" width="720">
+</a>
 
 ## Problem Statement
 
