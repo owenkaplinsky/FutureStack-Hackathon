@@ -236,9 +236,12 @@ def run_cron(db: Session = Depends(get_db), api_key: str = Depends(get_api_key))
                 }
 
                 hours = int((datetime.now() - last_report).total_seconds() / 3600)
-                contact_passed = hours >= contact_hours[contact]
 
-                if len(all_items) >= sources and contact_passed:
+                enough_time = hours >= contact_hours[contact]
+                enough_sources = len(all_items) >= sources
+
+                if enough_sources and enough_time:
+                    # Sent the email
                     report = main.create_report(text, all_items, last_report)
 
                     email = db.query(models.Users).filter(models.Users.userid == userid).first().email
@@ -259,7 +262,8 @@ def run_cron(db: Session = Depends(get_db), api_key: str = Depends(get_api_key))
                     db_user = db.query(models.Users).filter(models.Users.userid == userid).first()
                     db_user.reports_sent += 1
                     db_user.last_time = datetime.utcnow()
-                else:
+                elif not enough_sources:
+                    # Only add items if we don't yet have enough
                     for name, link, date, reason in new_items:
                         new_item = models.Items(
                             taskid=id,
@@ -271,6 +275,8 @@ def run_cron(db: Session = Depends(get_db), api_key: str = Depends(get_api_key))
                             site_date=date,
                         )
                         db.add(new_item)
+
+                # If we had enough sources but not enough time, skip adding new items entirely
 
                 db_task = db.query(models.Task).filter(models.Task.id == id).first()
                 db_task.last_cron = datetime.utcnow()
