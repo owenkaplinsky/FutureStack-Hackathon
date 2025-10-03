@@ -51,6 +51,7 @@ export default function ChatPage() {
           title: newTitle,
           text: newTask,
           sources: minSources,
+          contact: minContact,
         },
         authHeaders
       )
@@ -89,6 +90,7 @@ export default function ChatPage() {
           title: editTitle,
           text: editText,
           sources: editSources,
+          contact: editContact,
         },
         authHeaders
       )
@@ -134,7 +136,8 @@ export default function ChatPage() {
                 role="tooltip"
                 className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-64 bg-gray-700 text-white text-xs p-2 rounded shadow-lg opacity-0 pointer-events-none group-hover:opacity-100 group-focus:opacity-100 transition-opacity z-50"
               >
-                Niche topics may take a long time to find anything. Try to balance specificity and generality!
+                Niche topics may take a long time to find anything. Try to balance specificity and generality!<br />
+                Example: "Tell me about new movies that are announced, and things about them."
               </div>
             </span>
           </label>
@@ -217,12 +220,28 @@ export default function ChatPage() {
 
                 {editTaskId === task.id && (
                   <div className="bg-gray-900 p-4 mt-4 rounded-lg">
+                    <label className="block mb-1 text-white flex items-center">
+                      <span>Title</span>
+                    </label>
                     <input
                       type="text"
                       value={editTitle}
                       onChange={(e) => setEditTitle(e.target.value)}
                       className="w-full border border-gray-600 p-2 rounded-lg mb-2 bg-gray-800 text-white"
                     />
+                    <label className="block mb-1 text-white flex items-center">
+                      <span>Description</span>
+                      <span className="ml-2 relative group">
+                        <span className="text-sm text-gray-400 cursor-pointer">💡</span>
+                        <div
+                          role="tooltip"
+                          className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-64 bg-gray-700 text-white text-xs p-2 rounded shadow-lg opacity-0 pointer-events-none group-hover:opacity-100 group-focus:opacity-100 transition-opacity z-50"
+                        >
+                          Niche topics may take a long time to find anything. Try to balance specificity and generality!<br />
+                          Example: "Tell me about new movies that are announced, and things about them."
+                        </div>
+                      </span>
+                    </label>
                     <input
                       type="text"
                       value={editText}
