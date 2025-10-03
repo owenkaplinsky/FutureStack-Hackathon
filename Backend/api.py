@@ -210,7 +210,7 @@ def run_cron(db: Session = Depends(get_db), api_key: str = Depends(get_api_key))
                 title = task.title
                 text = task.text
                 sources = task.sources
-                searches = main.create_query(task.text)
+                searches = task.searches
                 last_cron = task.last_cron
                 last_report = task.last_report
                 contact = task.contact
