@@ -289,6 +289,16 @@ def refresh_data(user_query: str, searches: list, last_time: datetime):
     ####################
 
 
+    print(f"=== USER QUERY ===")
+    print()
+    print(user_query)
+    print()
+
+    hours = int((datetime.now() - last_time).total_seconds() / 3600)
+
+    print(f"=== {hours} HOURS HAVE PASSED ===")
+    print()
+
     print("=== FILTER ROUND ONE ===")
     print()
 
@@ -297,10 +307,6 @@ def refresh_data(user_query: str, searches: list, last_time: datetime):
     all_news_dicts = [] # raw rss dicts
 
     valid_items = 0
-
-    hours = int((datetime.now() - last_time).total_seconds() / 3600)
-
-    print(f"=== {hours} HAVE PASSED ===")
 
     for search in searches:
         output_dict, output_str = get_news_feed(search, hours=hours)
