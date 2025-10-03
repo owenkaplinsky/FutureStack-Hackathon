@@ -164,72 +164,86 @@ def user_info(info: UserInfo, db: Session = Depends(get_db), api_key: str = Depe
 # POST /run_cron - call this for the cron job. Does all the backend work for cron
 @app.post("/run_cron")
 def run_cron(db: Session = Depends(get_db), api_key: str = Depends(get_api_key)):
-    tasks = db.query(models.Task).all()
+    tasks = []
+    
+    # Short session just to fetch tasks
+    with SessionLocal() as db:
+        tasks = db.query(models.Task).all()
 
     for task in tasks:
-        id = task.id
-        userid = task.userid
-        title = task.title
-        text = task.text
-        sources = task.sources
-        searches = main.create_query(task.text)
-        last_cron = task.last_cron
-        last_report = task.last_report
-        contact = task.contact
+        # New session per task
+        with SessionLocal() as db:
+            try:
+                id = task.id
+                userid = task.userid
+                title = task.title
+                text = task.text
+                sources = task.sources
+                searches = main.create_query(task.text)
+                last_cron = task.last_cron
+                last_report = task.last_report
+                contact = task.contact
 
-        new_items = main.refresh_data(text, searches, last_cron)
-        existing_items = db.query(models.Items).filter(models.Items.taskid == id).all()
-        # Convert SQLAlchemy Items into tuples
-        existing_as_tuples = [
-            (item.item_title, item.link, item.site_date, item.text)
-            for item in existing_items
-        ]
+                new_items = main.refresh_data(text, searches, last_cron)
+                existing_items = db.query(models.Items).filter(models.Items.taskid == id).all()
+                existing_as_tuples = [
+                    (item.item_title, item.link, item.site_date, item.text)
+                    for item in existing_items
+                ]
 
-        all_items = list(new_items) + existing_as_tuples
+                all_items = list(new_items) + existing_as_tuples
 
-        contact_hours = {
-            0: 0,
-            1: 12,
-            2: 24,
-            3: 48,
-            4: 72,
-            5: 96,
-            6: 120,
-            7: 168,
-        }
+                contact_hours = {
+                    0: 0,
+                    1: 12,
+                    2: 24,
+                    3: 48,
+                    4: 72,
+                    5: 96,
+                    6: 120,
+                    7: 168,
+                }
 
-        hours = int((datetime.now() - last_report).total_seconds() / 3600)
-        contact_passed = hours >= contact_hours[contact]
+                hours = int((datetime.now() - last_report).total_seconds() / 3600)
+                contact_passed = hours >= contact_hours[contact]
 
-        if len(all_items) >= sources and contact_passed == True:
-            report = main.create_report(text, all_items, last_report)
+                if len(all_items) >= sources and contact_passed:
+                    report = main.create_report(text, all_items, last_report)
 
-            email = db.query(models.Users).filter(models.Users.userid == userid).first().email
+                    email = db.query(models.Users).filter(models.Users.userid == userid).first().email
 
-            send_message(
-                to=email,
-                subject=f"Your report on {title} is waiting for you!",
-                message_text=report
-            )
+                    send_message(
+                        to=email,
+                        subject=f"Your report on {title} is waiting for you!",
+                        message_text=report
+                    )
 
-            db.query(models.Items).filter(models.Items.taskid == id).delete()
-            task.last_report = datetime.utcnow()
-        else:
-            for name, link, date, reason in new_items:
-                new_item = models.Items(
-                    taskid=id,
-                    userid=userid,
-                    task_title=title,
-                    item_title=name,
-                    text=reason,
-                    link=link,
-                    site_date=date,
-                )
-                db.add(new_item)
+                    db.query(models.Items).filter(models.Items.taskid == id).delete()
 
-        task.last_cron = datetime.utcnow()
-        db.commit()
-        db.refresh(task)
+                    # FIX: re-fetch the task in this session before updating
+                    db_task = db.query(models.Task).filter(models.Task.id == id).first()
+                    db_task.last_report = datetime.utcnow()
+                else:
+                    for name, link, date, reason in new_items:
+                        new_item = models.Items(
+                            taskid=id,
+                            userid=userid,
+                            task_title=title,
+                            item_title=name,
+                            text=reason,
+                            link=link,
+                            site_date=date,
+                        )
+                        db.add(new_item)
+
+                # Always update last_cron in this session
+                db_task = db.query(models.Task).filter(models.Task.id == id).first()
+                db_task.last_cron = datetime.utcnow()
+
+                db.commit()
+            except:
+                db.rollback()
+                raise
 
     return {"detail": "All tasks ran successfully."}
 
