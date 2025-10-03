@@ -22,13 +22,13 @@ export default function ChatPage() {
   const authHeaders = { headers: { Authorization: `Bearer ${token}` } };
 
   const displayMap = {
-    0: "Immediately",
-    1: "Twice a day",
-    2: "Once a day",
-    3: "Once every 2 days",
-    4: "Once every 3 days",
-    5: "Once every 4 days",
-    6: "Once every 5 days",
+    0: "As soon as ready",
+    1: "Every 12 hours",
+    2: "Every 24 hours",
+    3: "Every 2 days",
+    4: "Every 3 days",
+    5: "Every 4 days",
+    6: "Every 5 days",
     7: "Once a week",
   };
 
@@ -167,7 +167,21 @@ export default function ChatPage() {
             className="w-full border border-gray-600 p-3 rounded-lg mb-4 bg-gray-900 text-white"
           />
 
-          <label className="block mb-1 text-white">Description</label>
+          <label className="block mb-1 text-white flex items-center">
+            <span>Description</span>
+            <span className="ml-2 relative group">
+              <span className="text-sm text-gray-400 cursor-pointer">
+                💡
+              </span>
+              <div
+                role="tooltip"
+                className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-64 bg-gray-700 text-white text-xs p-2 rounded shadow-lg opacity-0 pointer-events-none group-hover:opacity-100 group-focus:opacity-100 transition-opacity z-50"
+              >
+                Niche topics may take a long time to find anything. Try to balance specificity and generality!<br /><br />
+                Example: "Tell me about new movies that are announced, and when they'll come out."
+              </div>
+            </span>
+          </label>
           <textarea
             placeholder="Describe your AI task..."
             value={newTask}
@@ -176,8 +190,17 @@ export default function ChatPage() {
             rows={4}
           />
 
-          <label className="block mb-1 text-white">
-            Minimum sources: {minSources}
+          <label className="block mb-1 text-white flex items-center">
+            <span>Minimum sources: {minSources}</span>
+            <span className="ml-2 relative group">
+              <span className="text-sm text-gray-400 cursor-pointer">?</span>
+              <div
+                role="tooltip"
+                className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-64 bg-gray-700 text-white text-xs p-2 rounded shadow-lg opacity-0 pointer-events-none group-hover:opacity-100 group-focus:opacity-100 transition-opacity z-50"
+              >
+                Minimum amount of sources collected before user is sent a report.
+              </div>
+            </span>
           </label>
           <input
             type="range"
@@ -188,8 +211,18 @@ export default function ChatPage() {
             className="w-full accent-white mb-4"
           />
 
-          <label className="block mb-1 text-white">
-            How often: {displayMap[minContact]}
+          <label className="block mb-1 text-white flex items-center">
+            <span>How often: {displayMap[minContact]}</span>
+            <span className="ml-2 relative group">
+              <span className="text-sm text-gray-400 cursor-pointer">?</span>
+              <div
+                role="tooltip"
+                className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-64 bg-gray-700 text-white text-xs p-2 rounded shadow-lg opacity-0 pointer-events-none group-hover:opacity-100 group-focus:opacity-100 transition-opacity z-50"
+              >
+                Controls how long you must wait before receiving the next report.<br /><br />
+                For example, "Every 24 hours" means only one report per day, even if enough sources are found earlier.
+              </div>
+            </span>
           </label>
           <input
             type="range"
@@ -248,7 +281,21 @@ export default function ChatPage() {
                       className="w-full border border-gray-600 p-2 rounded-lg mb-2 bg-gray-800 text-white"
                     />
 
-                    <label className="block mb-1 text-white">Description</label>
+                    <label className="block mb-1 text-white flex items-center">
+                      <span>Description</span>
+                      <span className="ml-2 relative group">
+                        <span className="text-sm text-gray-400 cursor-pointer">
+                          💡
+                        </span>
+                        <div
+                          role="tooltip"
+                          className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-64 bg-gray-700 text-white text-xs p-2 rounded shadow-lg opacity-0 pointer-events-none group-hover:opacity-100 group-focus:opacity-100 transition-opacity z-50"
+                        >
+                          Niche topics may take a long time to find anything. Try to balance specificity and generality!<br /><br />
+                          Example: "Tell me about new movies that are announced, and when they'll come out."
+                        </div>
+                      </span>
+                    </label>
                     <textarea
                       value={editText}
                       onChange={(e) => setEditText(e.target.value)}
@@ -256,8 +303,17 @@ export default function ChatPage() {
                       rows={4}
                     />
 
-                    <label className="block text-white mb-1">
-                      Minimum sources: {editSources}
+                    <label className="block mb-1 text-white flex items-center">
+                      <span>Minimum sources: {minSources}</span>
+                      <span className="ml-2 relative group">
+                        <span className="text-sm text-gray-400 cursor-pointer">?</span>
+                        <div
+                          role="tooltip"
+                          className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-64 bg-gray-700 text-white text-xs p-2 rounded shadow-lg opacity-0 pointer-events-none group-hover:opacity-100 group-focus:opacity-100 transition-opacity z-50"
+                        >
+                          Minimum amount of sources collected before user is sent a report.
+                        </div>
+                      </span>
                     </label>
                     <input
                       type="range"
@@ -270,8 +326,18 @@ export default function ChatPage() {
                       className="w-full accent-white mb-4"
                     />
 
-                    <label className="block text-white mb-1">
-                      How often: {displayMap[editContact]}
+                    <label className="block mb-1 text-white flex items-center">
+                      <span>How often: {displayMap[minContact]}</span>
+                      <span className="ml-2 relative group">
+                        <span className="text-sm text-gray-400 cursor-pointer">?</span>
+                        <div
+                          role="tooltip"
+                          className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-64 bg-gray-700 text-white text-xs p-2 rounded shadow-lg opacity-0 pointer-events-none group-hover:opacity-100 group-focus:opacity-100 transition-opacity z-50"
+                        >
+                          Controls how long you must wait before receiving the next report.<br /><br />
+                          For example, "Every 24 hours" means only one report per day, even if enough sources are found earlier.
+                        </div>
+                      </span>
                     </label>
                     <input
                       type="range"
