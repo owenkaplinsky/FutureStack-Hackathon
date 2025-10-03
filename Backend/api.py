@@ -331,7 +331,7 @@ async def create_query(request: Request, db: Session = Depends(get_db), current_
         sources=sources,
         searches=searches,
         last_cron=datetime.now(),
-        last_report=datetime.now(),
+        last_report=datetime.fromtimestamp(0),
         contact=contact,
         reports_sent=0,
     )

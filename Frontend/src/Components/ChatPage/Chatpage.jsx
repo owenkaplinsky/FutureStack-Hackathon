@@ -178,7 +178,7 @@ export default function ChatPage() {
                 className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-64 bg-gray-700 text-white text-xs p-2 rounded shadow-lg opacity-0 pointer-events-none group-hover:opacity-100 group-focus:opacity-100 transition-opacity z-50"
               >
                 Niche topics may take a long time to find anything. Try to balance specificity and generality!<br /><br />
-                Example: "Tell me about new movies that are announced, and when they'll come out."
+                For example: "Tell me about new movies that are announced, and when they'll come out."
               </div>
             </span>
           </label>
@@ -268,7 +268,7 @@ export default function ChatPage() {
                 <p className="text-gray-300 mt-2 break-words">{task.text}</p>
                 <p className="text-gray-400">Min sources: {task.sources}</p>
                 <p className="text-gray-400">
-                  Min contact: {displayMap[task.contact]}
+                  How often: {displayMap[task.contact]}
                 </p>
 
                 {editTaskId === task.id && (
@@ -292,7 +292,7 @@ export default function ChatPage() {
                           className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-64 bg-gray-700 text-white text-xs p-2 rounded shadow-lg opacity-0 pointer-events-none group-hover:opacity-100 group-focus:opacity-100 transition-opacity z-50"
                         >
                           Niche topics may take a long time to find anything. Try to balance specificity and generality!<br /><br />
-                          Example: "Tell me about new movies that are announced, and when they'll come out."
+                          For example: "Tell me about new movies that are announced, and when they'll come out."
                         </div>
                       </span>
                     </label>
@@ -327,7 +327,7 @@ export default function ChatPage() {
                     />
 
                     <label className="block mb-1 text-white flex items-center">
-                      <span>How often: {displayMap[minContact]}</span>
+                      <span>How often: {displayMap[editContact]}</span>
                       <span className="ml-2 relative group">
                         <span className="text-sm text-gray-400 cursor-pointer">?</span>
                         <div
