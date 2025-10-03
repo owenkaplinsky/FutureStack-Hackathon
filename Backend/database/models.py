@@ -13,6 +13,7 @@ class Task(Base):
     searches = Column(JSON, nullable=False)
     last_cron = Column(DateTime, nullable=False)
     last_report = Column(DateTime, nullable=False)
+    contact = Column(Integer, nullable=False)
 
 # Items that went through both filters and are waiting to be used
 class Items(Base):

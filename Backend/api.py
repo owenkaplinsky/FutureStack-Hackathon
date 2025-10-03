@@ -173,6 +173,7 @@ def run_cron(db: Session = Depends(get_db), api_key: str = Depends(get_api_key))
         searches = main.create_query(task.text)
         last_cron = task.last_cron
         last_report = task.last_report
+        contact = task.contact
 
         new_items = main.refresh_data(text, searches, last_cron)
         existing_items = db.query(models.Items).filter(models.Items.taskid == id).all()
@@ -184,7 +185,21 @@ def run_cron(db: Session = Depends(get_db), api_key: str = Depends(get_api_key))
 
         all_items = list(new_items) + existing_as_tuples
 
-        if len(all_items) >= sources:
+        contact_hours = {
+            0: 0,
+            1: 12,
+            2: 24,
+            3: 48,
+            4: 72,
+            5: 96,
+            6: 120,
+            7: 168,
+        }
+
+        hours = int((datetime.now() - last_report).total_seconds() / 3600)
+        contact_passed = hours >= contact_hours[contact]
+
+        if len(all_items) >= sources and contact_passed == True:
             report = main.create_report(text, all_items, last_report)
 
             email = db.query(models.Users).filter(models.Users.userid == userid).first().email
@@ -239,6 +254,11 @@ async def create_query(request: Request, db: Session = Depends(get_db), current_
     except Exception:
         sources = 4
 
+    try:
+        contact = int(payload.get("text", 0))
+    except Exception:
+        contact = 0
+
     if not title or not text:
         raise HTTPException(status_code=400, detail="'title' and 'text' are required")
 
@@ -255,6 +275,7 @@ async def create_query(request: Request, db: Session = Depends(get_db), current_
         searches=searches,
         last_cron=datetime.now(),
         last_report=datetime.now(),
+        contact=contact
     )
     db.add(new_task)
     db.commit()
