@@ -257,7 +257,7 @@ async def create_query(request: Request, db: Session = Depends(get_db), current_
         sources = 4
 
     try:
-        contact = int(payload.get("text", 0))
+        contact = int(payload.get("contact", 0))
     except Exception:
         contact = 0
 
