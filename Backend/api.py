@@ -97,12 +97,14 @@ class TaskBase(BaseModel):
     title: str
     text: str
     sources: int
+    contact: int
     last_cron: Optional[datetime] = None
 
 class TaskUpdate(BaseModel):
     title: Optional[str] = None
     text: Optional[str] = None
     sources: Optional[int] = None
+    contact: Optional[int] = None
 
 class TaskResponse(TaskBase):
     userid: int
@@ -309,6 +311,8 @@ def update_query(id: int, task: TaskUpdate, db: Session = Depends(get_db), curre
         db_task.text = task.text
     if task.sources is not None:
         db_task.sources = task.sources
+    if task.contact is not None:
+        db_task.contact = task.contact
 
     db.commit()
     db.refresh(db_task)
@@ -318,6 +322,7 @@ def update_query(id: int, task: TaskUpdate, db: Session = Depends(get_db), curre
         "title": db_task.title,
         "text": db_task.text,
         "sources": db_task.sources,
+        "contact": db_task.contact,
         "detail": "Task updated successfully."
     }
 

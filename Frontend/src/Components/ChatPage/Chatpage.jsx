@@ -229,7 +229,7 @@ export default function ChatPage() {
                       className="w-full border border-gray-600 p-2 rounded-lg mb-2 bg-gray-800 text-white"
                     />
                     <label className="block text-white mb-1 flex items-center">
-                      <span>Minimum sources</span>
+                      <span>Minimum sources: {minSources}</span>
                       <span className="ml-2 relative group">
                         <span className="text-sm text-gray-400 cursor-pointer">?</span>
                         <div
@@ -237,6 +237,18 @@ export default function ChatPage() {
                           className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-64 bg-gray-700 text-white text-xs p-2 rounded shadow-lg opacity-0 pointer-events-none group-hover:opacity-100 group-focus:opacity-100 transition-opacity z-50"
                         >
                           Minimum amount of sources collected before user is sent a report.
+                        </div>
+                      </span>
+                    </label>
+                    <label className="block mb-1 text-white flex items-center">
+                      <span>How often: {displayMap[minContact]}</span>
+                      <span className="ml-2 relative group">
+                        <span className="text-sm text-gray-400 cursor-pointer">?</span>
+                        <div
+                          role="tooltip"
+                          className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-64 bg-gray-700 text-white text-xs p-2 rounded shadow-lg opacity-0 pointer-events-none group-hover:opacity-100 group-focus:opacity-100 transition-opacity z-50"
+                        >
+                          The minimum delay between sending the user an email.
                         </div>
                       </span>
                     </label>
