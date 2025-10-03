@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import jwtDecode from 'jwt-decode';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -12,7 +13,16 @@ export default function LoginPage() {
   useEffect(() => {
     const token = localStorage.getItem('token');
     if (token) {
-      navigate('/chat', { replace: true });
+      try {
+        const { exp } = jwtDecode(token);
+        if (Date.now() < exp * 1000) {
+          navigate('/chat', { replace: true });
+        } else {
+          localStorage.removeItem('token'); // expired
+        }
+      } catch (err) {
+        localStorage.removeItem('token'); // malformed
+      }
     }
   }, [navigate]);
 
