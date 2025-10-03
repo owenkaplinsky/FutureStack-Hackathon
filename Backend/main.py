@@ -435,7 +435,7 @@ def refresh_data(user_query: str, searches: list, last_time: datetime):
         print(f"=== ITEM ===")
         print(item)
 
-        date = meta["published"]
+        date = meta.get("published", None)
 
         link = meta["link"]
         link = resolve_url(link)
@@ -585,6 +585,7 @@ def create_report(user_query: str, vetted_items: dict, last_report: datetime):
         - Parentheses must wrap the citation. 
         - The clickable text must ALWAYS be the EXACT website name, NOT the article title, NOT the raw link.
         - Place citations immediately after the information, not at the end.
+        - If the item date is None, say "time unknown"!
         - YOU ARE NOT ALLOWED TO CASUALLY CITE THINGS LIKE "For example, SOURCE said..." YOU ARE REQUIRED TO CITE IT AT THE END OF TALKING ABOUT THE CONTENT.
 
         The goal is to provide timely updates on new developments since the last interaction, not background knowledge. The writing should feel polished, informative, and up-to-date.
@@ -593,7 +594,7 @@ def create_report(user_query: str, vetted_items: dict, last_report: datetime):
         But, NEVER use sources in the closing paragraph.
 
         YOU MUST ALWAYS INCLUDE THE LINK TO EVERY SINGLE ARTICLE. YOU CANNOT MENTION IT WITHOUT DIRECTLY LINKING TO IT. THIS IS A REQUIREMENT 100% OF THE TIME.
-        
+
         Remember, 750 words MINIMUM.
         """}
     ]

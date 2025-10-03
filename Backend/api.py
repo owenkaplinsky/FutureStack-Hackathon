@@ -399,6 +399,10 @@ def delete_query(id: int, db: Session = Depends(get_db), current_user: models.Us
     if current_user.active_count > 0:
         current_user.active_count -= 1
 
+    # Delete all related items first
+    db.query(models.Items).filter(models.Items.taskid == id).delete()
+
+    # Then delete the task itself
     db.delete(db_task)
     db.commit()
-    return {"detail": "Task deleted successfully."}
+    return {"detail": "Task and related items deleted successfully."}

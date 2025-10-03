@@ -27,7 +27,7 @@ class Items(Base):
     item_title = Column(String, nullable=False)
     text = Column(String, nullable=False)
     link = Column(String, nullable=False)
-    site_date = Column(DateTime, nullable=False)
+    site_date = Column(DateTime)
 
 # User information
 class Users(Base):
