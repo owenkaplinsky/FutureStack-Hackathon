@@ -13,6 +13,7 @@ export default function ChatPage() {
   const [editTitle, setEditTitle] = useState("");
   const [editText, setEditText] = useState("");
   const [editSources, setEditSources] = useState(4);
+  const [editContact, setEditContact] = useState(0);
 
   const backendUrl = process.env.REACT_APP_API_URL;
   const token = localStorage.getItem("token");
@@ -229,7 +230,7 @@ export default function ChatPage() {
                       className="w-full border border-gray-600 p-2 rounded-lg mb-2 bg-gray-800 text-white"
                     />
                     <label className="block text-white mb-1 flex items-center">
-                      <span>Minimum sources: {minSources}</span>
+                      <span>Minimum sources: {editSources}</span>
                       <span className="ml-2 relative group">
                         <span className="text-sm text-gray-400 cursor-pointer">?</span>
                         <div
@@ -240,8 +241,16 @@ export default function ChatPage() {
                         </div>
                       </span>
                     </label>
+                    <input
+                      type="range"
+                      min="4"
+                      max="8"
+                      value={editSources}
+                      onChange={(e) => setEditSources(Number(e.target.value))}
+                      className="w-full accent-white"
+                    />
                     <label className="block mb-1 text-white flex items-center">
-                      <span>How often: {displayMap[minContact]}</span>
+                      <span>How often: {displayMap[editContact]}</span>
                       <span className="ml-2 relative group">
                         <span className="text-sm text-gray-400 cursor-pointer">?</span>
                         <div
@@ -254,11 +263,11 @@ export default function ChatPage() {
                     </label>
                     <input
                       type="range"
-                      min="4"
-                      max="8"
-                      value={editSources}
-                      onChange={(e) => setEditSources(Number(e.target.value))}
-                      className="w-full accent-white"
+                      min="0"
+                      max="7"
+                      value={editContact}
+                      onChange={(e) => setEditContact(Number(e.target.value))}
+                      className="w-full accent-white mb-4"
                     />
                     <button
                       onClick={() => saveEdit(task.id)}
