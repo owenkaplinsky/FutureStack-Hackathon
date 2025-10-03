@@ -136,7 +136,7 @@ export default function ChatPage() {
                 role="tooltip"
                 className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-64 bg-gray-700 text-white text-xs p-2 rounded shadow-lg opacity-0 pointer-events-none group-hover:opacity-100 group-focus:opacity-100 transition-opacity z-50"
               >
-                Niche topics may take a long time to find anything. Try to balance specificity and generality!<br />
+                Niche topics may take a long time to find anything. Try to balance specificity and generality!<br /><br />
                 Example: "Tell me about new movies that are announced, and things about them."
               </div>
             </span>
@@ -237,7 +237,7 @@ export default function ChatPage() {
                           role="tooltip"
                           className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-64 bg-gray-700 text-white text-xs p-2 rounded shadow-lg opacity-0 pointer-events-none group-hover:opacity-100 group-focus:opacity-100 transition-opacity z-50"
                         >
-                          Niche topics may take a long time to find anything. Try to balance specificity and generality!<br />
+                          Niche topics may take a long time to find anything. Try to balance specificity and generality!<br /><br />
                           Example: "Tell me about new movies that are announced, and things about them."
                         </div>
                       </span>
