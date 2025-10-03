@@ -10,6 +10,7 @@ import json
 import difflib
 import requests
 import markdown
+import random
 from playwright.sync_api import sync_playwright, Error as PlaywrightError
 
 
@@ -422,6 +423,11 @@ def refresh_data(user_query: str, searches: list, last_time: datetime):
             }
         }
     ]
+
+    # Cap max items to 30 of them
+    # Pick a random sample so that they aren't all from the same search
+    if len(chosen_dict) > 30:
+        chosen_dict = dict(random.sample(list(chosen_dict.items()), 30))
 
     passed_items = []
 
