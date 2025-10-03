@@ -291,6 +291,7 @@ async def create_query(request: Request, db: Session = Depends(get_db), current_
         "text": new_task.text,
         "sources": new_task.sources,
         "searches": new_task.searches,
+        "contact": new_task.contact,
         "last_cron": new_task.last_cron,
         "last_report": new_task.last_report,
     }
