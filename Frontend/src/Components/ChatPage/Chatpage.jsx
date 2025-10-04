@@ -1,7 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
-import { FaTrash, FaTasks, FaCog } from "react-icons/fa";
+import {
+  FaTrash,
+  FaTasks,
+  FaCog,
+  FaSignOutAlt,
+} from "react-icons/fa";
 
 export default function ChatPage() {
   const [tasks, setTasks] = useState([]);
@@ -30,6 +35,13 @@ export default function ChatPage() {
     5: "Every 4 days",
     6: "Every 5 days",
     7: "Once a week",
+  };
+
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    navigate("/");
   };
 
   useEffect(() => {
@@ -138,13 +150,26 @@ export default function ChatPage() {
 
   return (
     <div className="min-h-screen bg-gray-900 flex flex-col">
-      <header className="py-6 text-center bg-gradient-to-r from-gray-800 to-gray-900 shadow-lg">
-        <h1 className="text-4xl font-bold text-white flex justify-center items-center">
-          <FaTasks className="mr-2 animate-pulse" />
-          <Link to="/" className="ml-2 hover:underline">
+      <header className="py-6 px-8 bg-gray-800 shadow-lg flex items-center justify-between">
+        {/* Left Spacer */}
+        <div className="w-1/3"></div>
+
+        {/* Centered Title */}
+        <h1 className="text-3xl font-bold text-white text-center w-1/3 flex justify-center items-center">
+          <Link to="/dashboard" className="hover:underline text-white">
             AI Task Manager
           </Link>
         </h1>
+
+        {/* Right Side - Logout Button */}
+        <div className="w-1/3 flex justify-end">
+          <button
+            onClick={handleLogout}
+            className="flex items-center bg-red-600 hover:bg-red-700 px-4 py-2 rounded-lg font-semibold text-white shadow-lg hover:scale-105 transition"
+          >
+            <FaSignOutAlt className="mr-2" /> Logout
+          </button>
+        </div>
       </header>
 
       <main className="flex-grow flex flex-col items-center px-4 mt-8">
@@ -380,10 +405,6 @@ export default function ChatPage() {
           )}
         </div>
       </main>
-
-      <footer className="py-4 text-center text-gray-400 bg-gray-800">
-        AI Task Manager © 2025
-      </footer>
     </div>
   );
 }

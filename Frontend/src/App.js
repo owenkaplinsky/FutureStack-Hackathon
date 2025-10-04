@@ -10,7 +10,6 @@ import Docs from './Components/Docs/Docs';
 function App() {
   return (
     <div>
-     <Dashboard />
       <Routes>
         <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<LoginPage />} />
