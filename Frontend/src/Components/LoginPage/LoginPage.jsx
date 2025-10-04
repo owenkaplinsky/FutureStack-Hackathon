@@ -19,9 +19,11 @@ export default function LoginPage() {
           navigate('/dashboard', { replace: true });
         } else {
           localStorage.removeItem('token'); // expired
+          navigate('/', { replace: true }); // send back to main page
         }
       } catch (err) {
         localStorage.removeItem('token'); // malformed
+        navigate('/', { replace: true }); // send back to main page
       }
     }
   }, [navigate]);
