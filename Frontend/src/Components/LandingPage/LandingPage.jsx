@@ -4,7 +4,7 @@ import { FaRocket, FaSignInAlt, FaUserPlus } from 'react-icons/fa';
 
 export default function LandingPage() {
   return (
-    <div className="h-screen bg-gray-900 text-white flex flex-col overflow-hidden">
+    <div className="min-h-screen bg-gray-900 text-white flex flex-col overflow-y-auto">
       {/* Header */}
   <header className="w-full flex flex-wrap items-center justify-between p-4 md:p-6 bg-gray-800 shadow-md">
   {/* Left spacer */}
@@ -68,10 +68,6 @@ export default function LandingPage() {
           </div>
         </div>
       </main>
-
-      <footer className="mt-auto bg-gray-900 text-gray-500 text-center py-4">
-        Proactive AI © 2025
-      </footer>
     </div>
   );
 }

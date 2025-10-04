@@ -157,7 +157,7 @@ export default function ChatPage() {
         {/* Centered Title */}
         <h1 className="text-3xl font-bold text-white text-center w-1/3 flex justify-center items-center">
           <Link to="/dashboard" className="hover:underline text-white">
-            AI Task Manager
+            Proactive AI
           </Link>
         </h1>
 
