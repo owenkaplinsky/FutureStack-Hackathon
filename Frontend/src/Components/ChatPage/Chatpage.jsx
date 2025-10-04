@@ -21,6 +21,10 @@ export default function ChatPage() {
   const [editContact, setEditContact] = useState(0);
   const [errorMessage, setErrorMessage] = useState("");
   const [loading, setLoading] = useState(false);
+  const [loadingAdd, setLoadingAdd] = useState(false);
+const [loadingDelete, setLoadingDelete] = useState({});
+const [loadingEdit, setLoadingEdit] = useState({});
+
 
   const backendUrl = process.env.REACT_APP_API_URL;
   const token = localStorage.getItem("token");
@@ -73,7 +77,7 @@ export default function ChatPage() {
       return;
     }
 
-    setLoading(true);
+    setLoadingAdd(true);
 
     axios
       .post(
@@ -97,20 +101,23 @@ export default function ChatPage() {
         console.error("Error adding task:", err);
         setErrorMessage("Failed to add task.");
       })
-      .finally(() => setLoading(false));
+      .finally(() => setLoadingAdd(false));
   };
 
   const deleteTask = (id) => {
-    setLoading(true);
-    axios
-      .delete(`${backendUrl}/delete_query/${id}`, authHeaders)
-      .then(() => setTasks(tasks.filter((task) => task.id !== id)))
-      .catch((err) => {
-        console.error("Error deleting task:", err);
-        setErrorMessage("Failed to delete task.");
-      })
-      .finally(() => setLoading(false));
-  };
+  setLoadingDelete((prev) => ({ ...prev, [id]: true })); // set loading only for this task
+  axios
+    .delete(`${backendUrl}/delete_query/${id}`, authHeaders)
+    .then(() => setTasks(tasks.filter((task) => task.id !== id)))
+    .catch((err) => {
+      console.error("Error deleting task:", err);
+      setErrorMessage("Failed to delete task.");
+    })
+    .finally(() =>
+      setLoadingDelete((prev) => ({ ...prev, [id]: false }))
+    );
+};
+
 
   const startEdit = (task) => {
     setEditTaskId(task.id);
@@ -125,28 +132,32 @@ export default function ChatPage() {
   };
 
   const saveEdit = (id) => {
-    setLoading(true);
-    axios
-      .put(
-        `${backendUrl}/update_query/${id}`,
-        {
-          title: editTitle,
-          text: editText,
-          sources: editSources,
-          contact: editContact,
-        },
-        authHeaders
-      )
-      .then((res) => {
-        setTasks(tasks.map((task) => (task.id === id ? res.data : task)));
-        setEditTaskId(null);
-      })
-      .catch((err) => {
-        console.error("Error updating task:", err);
-        setErrorMessage("Failed to update task.");
-      })
-      .finally(() => setLoading(false));
-  };
+  setLoadingEdit((prev) => ({ ...prev, [id]: true }));
+
+  axios
+    .put(
+      `${backendUrl}/update_query/${id}`,
+      {
+        title: editTitle,
+        text: editText,
+        sources: editSources,
+        contact: editContact,
+      },
+      authHeaders
+    )
+    .then((res) => {
+      setTasks(tasks.map((task) => (task.id === id ? res.data : task)));
+      setEditTaskId(null);
+    })
+    .catch((err) => {
+      console.error("Error updating task:", err);
+      setErrorMessage("Failed to update task.");
+    })
+    .finally(() =>
+      setLoadingEdit((prev) => ({ ...prev, [id]: false }))
+    );
+};
+
 
   return (
     <div className="min-h-screen bg-gray-900 flex flex-col">
@@ -258,10 +269,10 @@ export default function ChatPage() {
 
           <button
             onClick={addTask}
-            disabled={loading}
+            disabled={loadingAdd}
             className="w-full bg-white text-black py-3 rounded-lg font-semibold hover:bg-gray-200 disabled:opacity-50"
           >
-            {loading ? "Loading..." : "Add Task"}
+            {loadingAdd ? "Loading..." : "Add Task"}
           </button>
         </div>
 
@@ -376,10 +387,10 @@ export default function ChatPage() {
                     <div className="flex gap-2">
                       <button
                         onClick={() => saveEdit(task.id)}
-                        disabled={loading}
+                        disabled={loadingEdit[task.id]}
                         className="bg-white text-black px-4 py-2 rounded-lg font-semibold disabled:opacity-50"
                       >
-                        {loading ? "Saving..." : "Save"}
+                        {loadingEdit[task.id] ? "Saving..." : "Save"}
                       </button>
                       <button
                         onClick={cancelEdit}
@@ -393,10 +404,10 @@ export default function ChatPage() {
 
                 <button
                   onClick={() => deleteTask(task.id)}
-                  disabled={loading}
+                  disabled={loadingDelete[task.id]}
                   className="mt-4 bg-red-600 text-white px-3 py-2 rounded-full flex items-center hover:bg-red-700 disabled:opacity-50"
                 >
-                  {loading ? "Deleting..." : <><FaTrash className="mr-2" /> Delete</>}
+                  {loadingDelete[task.id] ? "Deleting..." : <><FaTrash className="mr-2" /> Delete</>}
                 </button>
               </div>
             ))
