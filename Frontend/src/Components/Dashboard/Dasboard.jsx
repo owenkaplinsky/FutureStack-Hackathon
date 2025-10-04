@@ -7,12 +7,15 @@ import {
   FaChartPie,
   FaSignOutAlt,
   FaHistory,
-  FaUserCircle,
 } from "react-icons/fa";
 import { motion } from "framer-motion";
 
 export default function Dashboard() {
   const navigate = useNavigate();
+
+  const backendUrl = process.env.REACT_APP_API_URL;
+  const token = localStorage.getItem("token");
+  const authHeaders = { headers: { Authorization: `Bearer ${token}` } };
 
   const [userStats, setUserStats] = useState({
     active_count: 0,
@@ -24,15 +27,33 @@ export default function Dashboard() {
 
   const handleLogout = () => {
     localStorage.removeItem("token");
-    navigate("/login");
+    navigate("/");
   };
 
-  // Fetch stats + activity on mount
+  function timeAgo(dateString) {
+    const date = new Date(dateString);
+    const seconds = Math.floor((Date.now() - date) / 1000);
+
+    const intervals = [
+      { label: "year", seconds: 31536000 },
+      { label: "month", seconds: 2592000 },
+      { label: "day", seconds: 86400 },
+      { label: "hour", seconds: 3600 },
+      { label: "minute", seconds: 60 },
+    ];
+
+    for (const { label, seconds: s } of intervals) {
+      const count = Math.floor(seconds / s);
+      if (count >= 1) return `${count} ${label}${count > 1 ? "s" : ""} ago`;
+    }
+    return "Just now";
+  }
+
   useEffect(() => {
     const token = localStorage.getItem("token");
+    if (!token) return;
 
-    // Fetch user info
-    fetch("/api/user_info", {
+    fetch(`${backendUrl}/user_info`, {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then((res) => res.json())
@@ -45,20 +66,12 @@ export default function Dashboard() {
       })
       .catch((err) => console.error("Failed to fetch user info:", err));
 
-    // Fetch recent activity (if API available)
-    fetch("/api/activity", {
+    fetch(`${backendUrl}/user_activity`, {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then((res) => res.json())
       .then((data) => setRecentActivity(data))
-      .catch((err) => {
-        console.warn("No activity API, falling back to dummy:", err);
-        setRecentActivity([
-          { id: 1, action: "Created a task", time: "2h ago" },
-          { id: 2, action: "Edited a report", time: "5h ago" },
-          { id: 3, action: "Deleted a task", time: "1 day ago" },
-        ]);
-      });
+      .catch((err) => console.error("Failed to fetch user activity:", err));
   }, []);
 
   return (
@@ -66,11 +79,6 @@ export default function Dashboard() {
       {/* Top Navbar */}
       <header className="py-6 px-8 flex justify-between items-center bg-gray-800 sticky top-0 z-50 shadow-md">
         <div className="flex items-center space-x-3">
-          <FaUserCircle className="text-4xl text-blue-500" />
-          <div>
-            <h1 className="text-xl font-bold">Welcome</h1>
-            <p className="text-gray-400 text-sm">Your AI Dashboard</p>
-          </div>
         </div>
         <button
           onClick={handleLogout}
@@ -86,7 +94,7 @@ export default function Dashboard() {
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8 }}
-          className="text-5xl font-extrabold text-blue-400"
+          className="text-5xl font-extrabold"
         >
           🚀 AI Task Manager Dashboard
         </motion.h2>
@@ -103,7 +111,7 @@ export default function Dashboard() {
         >
           <FaClipboardList className="text-3xl text-blue-400 mb-2" />
           <h2 className="text-lg font-semibold">Active Tasks</h2>
-          <p className="text-3xl font-bold">{userStats.active_count}</p>
+          <p className="text-3xl font-bold">{userStats.active_count}/3</p>
         </motion.div>
 
         <motion.div
@@ -129,7 +137,7 @@ export default function Dashboard() {
       <section className="grid grid-cols-1 md:grid-cols-2 gap-8 px-6 mb-12 max-w-5xl mx-auto">
         <Link
           to="/tasks"
-          className="bg-blue-600 hover:bg-blue-700 hover:scale-105 transition rounded-2xl p-8 shadow-lg text-center"
+          className="bg-blue-600 hover:bg-blue-700 hover:scale-105 transition rounded-2xl p-8 shadow-lg text-center flex flex-col items-center"
         >
           <FaClipboardList className="text-4xl mb-3" />
           <h3 className="text-2xl font-bold">Go to Tasks</h3>
@@ -138,7 +146,7 @@ export default function Dashboard() {
 
         <Link
           to="/docs"
-          className="bg-purple-600 hover:bg-purple-700 hover:scale-105 transition rounded-2xl p-8 shadow-lg text-center"
+          className="bg-purple-600 hover:bg-purple-700 hover:scale-105 transition rounded-2xl p-8 shadow-lg text-center flex flex-col items-center"
         >
           <FaFileAlt className="text-4xl mb-3" />
           <h3 className="text-2xl font-bold">Docs</h3>
@@ -159,7 +167,7 @@ export default function Dashboard() {
                 className="flex justify-between text-gray-300 hover:text-white transition"
               >
                 <span>{item.action}</span>
-                <span className="text-gray-500 text-sm">{item.time}</span>
+                <span className="text-gray-500 text-sm">{timeAgo(item.time)}</span>
               </li>
             ))
           ) : (

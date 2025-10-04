@@ -69,7 +69,7 @@ export default function LandingPage() {
       </main>
 
       <footer className="mt-auto bg-gray-900 text-gray-500 text-center py-4">
-        <p>Proactive AI &copy; 2025</p>
+        Proactive AI © 2025
       </footer>
     </div>
   );

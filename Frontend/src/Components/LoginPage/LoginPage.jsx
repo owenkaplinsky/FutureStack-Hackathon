@@ -16,7 +16,7 @@ export default function LoginPage() {
       try {
         const { exp } = jwtDecode(token);
         if (Date.now() < exp * 1000) {
-          navigate('/chat', { replace: true });
+          navigate('/dashboard', { replace: true });
         } else {
           localStorage.removeItem('token'); // expired
         }
@@ -35,7 +35,7 @@ export default function LoginPage() {
       // Save the JWT access token instead of userid
       localStorage.setItem('token', response.data.access_token);
 
-      navigate('/chat');
+      navigate('/dashboard');
     } catch (err) {
       if (err.response && err.response.data && err.response.data.detail) {
         setError(err.response.data.detail);
