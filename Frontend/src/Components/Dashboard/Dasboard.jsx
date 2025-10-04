@@ -76,16 +76,26 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-gray-900 text-white">
-      {/* Top Navbar */}
-      <header className="py-6 px-8 flex justify-between items-center bg-gray-800 sticky top-0 z-50 shadow-md">
-        <div className="flex items-center space-x-3">
+      <header className="py-6 px-8 flex items-center justify-between bg-gray-800 sticky top-0 z-50 shadow-md">
+        {/* Left Spacer */}
+        <div className="w-1/3"></div>
+
+        {/* Centered Title */}
+        <h1 className="text-3xl font-bold text-white text-center w-1/3 flex justify-center items-center">
+          <Link to="/dashboard" className="hover:underline text-white">
+            Proactive AI
+          </Link>
+        </h1>
+
+        {/* Right Side - Logout Button */}
+        <div className="w-1/3 flex justify-end">
+          <button
+            onClick={handleLogout}
+            className="flex items-center bg-red-600 hover:bg-red-700 px-4 py-2 rounded-lg font-semibold shadow-lg hover:scale-105 transition"
+          >
+            <FaSignOutAlt className="mr-2" /> Logout
+          </button>
         </div>
-        <button
-          onClick={handleLogout}
-          className="flex items-center bg-red-600 hover:bg-red-700 px-4 py-2 rounded-lg font-semibold shadow-lg hover:scale-105 transition"
-        >
-          <FaSignOutAlt className="mr-2" /> Logout
-        </button>
       </header>
 
       {/* Hero Section */}
@@ -96,7 +106,7 @@ export default function Dashboard() {
           transition={{ duration: 0.8 }}
           className="text-5xl font-extrabold"
         >
-          🚀 AI Task Manager Dashboard
+          🚀 Proactive AI Dashboard
         </motion.h2>
         <p className="text-gray-400 mt-3 text-lg">
           Track tasks, reports & stay in control

@@ -10,8 +10,10 @@ export default function LandingPage() {
         {/* Left spacer */}
         <div className="w-1/3"></div>
 
-        {/* Centered title */}
-        <h1 className="text-2xl font-bold text-center w-1/3">Proactive AI</h1>
+        {/* Centered Title */}
+        <h1 className="text-3xl font-bold text-white text-center w-1/3 flex justify-center items-center">
+          Proactive AI
+        </h1>
 
         {/* Right side buttons */}
         <div className="flex space-x-4 w-1/3 justify-end">

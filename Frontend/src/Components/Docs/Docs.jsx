@@ -18,7 +18,7 @@ export default function Docs() {
 
         <h1 className="text-3xl font-bold text-white text-center w-1/3 flex justify-center items-center">
           <Link to="/dashboard" className="hover:underline text-white">
-            AI Task Manager
+            Proactive AI
           </Link>
         </h1>
 
@@ -35,10 +35,10 @@ export default function Docs() {
       {/* Main Content */}
       <main className="flex-grow px-6 py-10 max-w-4xl mx-auto leading-relaxed">
         <h2 className="text-4xl font-extrabold text-blue-400 mb-6">
-          Welcome to the AI Task Manager Docs
+          Welcome to the Proactive AI Docs
         </h2>
         <p className="text-gray-300 mb-6">
-          This documentation will help you understand how to get the most out of the AI Task Manager - 
+          This documentation will help you understand how to get the most out of the Proactive AI - 
           from creating effective tasks to understanding how automated reports are generated.  
           For the full project source code, visit the{" "}
           <a
