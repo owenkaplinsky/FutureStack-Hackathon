@@ -435,7 +435,10 @@ def refresh_data(user_query: str, searches: list, last_time: datetime):
         print(f"=== ITEM ===")
         print(item)
 
-        date = meta.get("published", None)
+        if isinstance(meta, dict):
+            date = meta.get("published", None)
+        else:
+            date = None
 
         link = meta["link"]
         link = resolve_url(link)
