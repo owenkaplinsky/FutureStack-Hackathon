@@ -132,7 +132,9 @@ export default function Dashboard() {
         >
           <FaFileAlt className="text-3xl text-blue-400 mb-2" />
           <h2 className="text-lg font-semibold">Last Report</h2>
-          <p className="text-md">{userStats.last_time || "—"}</p>
+          <p className="text-md text-gray-400">
+            {userStats.last_time ? timeAgo(userStats.last_time) : "—"}
+          </p>
         </motion.div>
       </section>
 
