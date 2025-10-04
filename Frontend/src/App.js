@@ -6,6 +6,7 @@ import SignUpPage from './Components/SignUpPage/SignUpPage';
 import LoginPage from './Components/LoginPage/LoginPage';
 import { ProtectedRoute } from './Components/ProtectedRoute/ProtectedRoute';
 import Dashboard from './Components/Dashboard/Dasboard';
+import Docs from './Components/Docs/Docs';
 function App() {
   return (
     <div>
@@ -19,6 +20,14 @@ function App() {
           element={
             <ProtectedRoute>
               <Dashboard />
+            </ProtectedRoute>
+          }
+        />
+          <Route
+          path="/docs"
+          element={
+            <ProtectedRoute>
+              <Docs/>
             </ProtectedRoute>
           }
         />
