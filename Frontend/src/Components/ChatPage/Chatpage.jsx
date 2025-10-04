@@ -12,12 +12,12 @@ export default function ChatPage() {
   const [tasks, setTasks] = useState([]);
   const [newTitle, setNewTitle] = useState("");
   const [newTask, setNewTask] = useState("");
-  const [minSources, setMinSources] = useState(4);
+  const [minSources, setMinSources] = useState(1);
   const [minContact, setMinContact] = useState(0);
   const [editTaskId, setEditTaskId] = useState(null);
   const [editTitle, setEditTitle] = useState("");
   const [editText, setEditText] = useState("");
-  const [editSources, setEditSources] = useState(4);
+  const [editSources, setEditSources] = useState(1);
   const [editContact, setEditContact] = useState(0);
   const [errorMessage, setErrorMessage] = useState("");
   const [loading, setLoading] = useState(false);
@@ -94,7 +94,7 @@ export default function ChatPage() {
         setTasks([...tasks, res.data]);
         setNewTitle("");
         setNewTask("");
-        setMinSources(4);
+        setMinSources(1);
         setMinContact(0);
       })
       .catch((err) => {
@@ -235,7 +235,7 @@ export default function ChatPage() {
           </label>
           <input
             type="range"
-            min="4"
+            min="1"
             max="8"
             value={minSources}
             onChange={(e) => setMinSources(Number(e.target.value))}
@@ -335,7 +335,7 @@ export default function ChatPage() {
                     />
 
                     <label className="block mb-1 text-white flex items-center">
-                      <span>Minimum sources: {minSources}</span>
+                      <span>Minimum sources: {editSources}</span>
                       <span className="ml-2 relative group">
                         <span className="text-sm text-gray-400 cursor-pointer">?</span>
                         <div
@@ -348,7 +348,7 @@ export default function ChatPage() {
                     </label>
                     <input
                       type="range"
-                      min="4"
+                      min="1"
                       max="8"
                       value={editSources}
                       onChange={(e) =>
