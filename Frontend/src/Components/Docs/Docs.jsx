@@ -13,24 +13,25 @@ export default function Docs() {
   return (
     <div className="min-h-screen bg-gray-900 flex flex-col text-white">
       {/* Header */}
-      <header className="py-6 px-8 bg-gray-800 shadow-lg flex items-center justify-between">
-        <div className="w-1/3"></div>
+      <header className="py-6 px-4 bg-gray-800 shadow-lg flex flex-col sm:flex-row items-center justify-between">
+  {/* Title */}
+  <h1 className="text-3xl font-bold text-white text-center flex justify-center items-center flex-1">
+    <Link to="/dashboard" className="hover:underline text-white">
+      Proactive AI
+    </Link>
+  </h1>
 
-        <h1 className="text-3xl font-bold text-white text-center w-1/3 flex justify-center items-center">
-          <Link to="/dashboard" className="hover:underline text-white">
-            Proactive AI
-          </Link>
-        </h1>
+  {/* Logout Button */}
+  <div className="mt-4 sm:mt-0">
+    <button
+      onClick={handleLogout}
+      className="flex items-center bg-red-600 hover:bg-red-700 px-4 py-2 rounded-lg font-semibold text-white shadow-lg hover:scale-105 transition"
+    >
+      <FaSignOutAlt className="mr-2" /> Logout
+    </button>
+  </div>
+</header>
 
-        <div className="w-1/3 flex justify-end">
-          <button
-            onClick={handleLogout}
-            className="flex items-center bg-red-600 hover:bg-red-700 px-4 py-2 rounded-lg font-semibold text-white shadow-lg hover:scale-105 transition"
-          >
-            <FaSignOutAlt className="mr-2" /> Logout
-          </button>
-        </div>
-      </header>
 
       {/* Main Content */}
       <main className="flex-grow px-6 py-10 max-w-4xl mx-auto leading-relaxed">

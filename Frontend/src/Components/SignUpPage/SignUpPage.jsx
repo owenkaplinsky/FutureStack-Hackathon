@@ -34,8 +34,8 @@ export default function SignupPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-900 flex flex-col justify-center items-center">
-      <div className="bg-gray-800 p-8 rounded-xl shadow-lg w-full max-w-md">
+    <div className="min-h-screen bg-gray-900 flex flex-col justify-center items-center px-4">
+      <div className="bg-gray-800 p-6 sm:p-8 rounded-xl shadow-lg w-full max-w-md">
         <h2 className="text-3xl font-bold mb-6 text-white text-center">Create an Account</h2>
         {error && <p className="text-red-500 text-center mb-4">{error}</p>}
         <form onSubmit={handleSignup}>

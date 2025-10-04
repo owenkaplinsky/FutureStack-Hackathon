@@ -48,11 +48,11 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen bg-gray-900 flex flex-col justify-center items-center">
-      <div className="bg-gray-800 p-8 rounded-xl shadow-lg w-full max-w-md">
-        <h2 className="text-3xl font-bold mb-6 text-white text-center">Login</h2>
+      <div className="bg-gray-800 p-6 sm:p-8 rounded-xl shadow-lg w-[90%] sm:w-full max-w-md">
+        <h2 className="text-2xl sm:text-3xl font-bold mb-6 text-white text-center">Login</h2>
         {error && <p className="text-red-500 text-center mb-4">{error}</p>}
         <form onSubmit={handleLogin}>
-          <div className="mb-4">
+          <div className="mb-4 sm:mb-6">
             <label className="block text-white mb-2" htmlFor="email">Email</label>
             <input
               type="email"
@@ -74,7 +74,7 @@ export default function LoginPage() {
               required
             />
           </div>
-          <button type="submit" className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700">
+          <button type="submit" className="w-full bg-blue-600 text-white py-3 sm:py-3.5 rounded-lg font-semibold hover:bg-blue-700">
             Login
           </button>
         </form>
