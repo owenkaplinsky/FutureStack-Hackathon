@@ -6,31 +6,30 @@ export default function LandingPage() {
   return (
     <div className="min-h-screen bg-gray-900 text-white flex flex-col overflow-y-auto">
       {/* Header */}
-      <header className="w-full flex items-center justify-between p-6 bg-gray-800 shadow-md">
-        {/* Left spacer */}
-        <div className="w-1/3"></div>
+  <header className="w-full flex flex-wrap items-center justify-between p-4 md:p-6 bg-gray-800 shadow-md">
+  {/* Left spacer */}
+  <div className="w-full md:w-1/3 flex justify-center md:justify-start mb-2 md:mb-0"></div>
 
-        {/* Centered Title */}
-        <h1 className="text-3xl font-bold text-white text-center w-1/3 flex justify-center items-center">
-          Proactive AI
-        </h1>
+  {/* Centered title */}
+  <h1 className="text-xl md:text-2xl font-bold text-center w-full md:w-1/3">Proactive AI</h1>
 
-        {/* Right side buttons */}
-        <div className="flex space-x-4 w-1/3 justify-end">
-          <Link
-            to="/login"
-            className="flex items-center bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-          >
-            <FaSignInAlt className="mr-2" /> Login
-          </Link>
-          <Link
-            to="/signup"
-            className="flex items-center bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded"
-          >
-            <FaUserPlus className="mr-2" /> Sign Up
-          </Link>
-        </div>
-      </header>
+  {/* Right side buttons */}
+  <div className="flex flex-wrap justify-center md:justify-end space-x-2 w-full md:w-1/3">
+    <Link
+      to="/login"
+      className="flex items-center justify-center bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+    >
+      <FaSignInAlt className="mr-2" /> Login
+    </Link>
+    <Link
+      to="/signup"
+      className="flex items-center justify-center bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded"
+    >
+      <FaUserPlus className="mr-2" /> Sign Up
+    </Link>
+  </div>
+</header>
+
 
       <main className="max-w-4xl mx-auto text-center px-4 mt-6">
         <div className="bg-gray-800 p-8 rounded-lg shadow-lg mb-6">
