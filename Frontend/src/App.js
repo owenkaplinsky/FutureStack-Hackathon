@@ -6,30 +6,11 @@ import LandingPage from './Components/LandingPage/LandingPage';
 import SignUpPage from './Components/SignUpPage/SignUpPage';
 import LoginPage from './Components/LoginPage/LoginPage';
 import { ProtectedRoute } from './Components/ProtectedRoute/ProtectedRoute';
+import Dashboard from './Components/Dashboard/Dasboard';
 function App() {
   return (
     <div>
-      <Routes>
-        <Route path="/" element={<LandingPage />} />
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/signup" element={<SignUpPage />} />
-        <Route
-          path="/tasks"
-          element={
-            <ProtectedRoute>
-              <ChatPage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/chat"
-          element={
-            <ProtectedRoute>
-              <ChatPage />
-            </ProtectedRoute>
-          }
-        />
-      </Routes>
+     <Dashboard />
     </div>
   );
 }
