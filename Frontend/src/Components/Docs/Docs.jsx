@@ -12,17 +12,14 @@ export default function Docs() {
 
   return (
     <div className="min-h-screen bg-gray-900 flex flex-col text-white">
-      {/* Header */}
-      <header className="py-6 px-8 bg-gray-800 shadow-lg flex items-center justify-between">
-        <div className="w-1/3"></div>
-
-        <h1 className="text-3xl font-bold text-white text-center w-1/3 flex justify-center items-center">
+      <header className="py-6 px-4 bg-gray-800 shadow-lg relative flex items-center justify-center">
+        <h1 className="text-3xl font-bold text-white text-center">
           <Link to="/dashboard" className="hover:underline text-white">
             Proactive AI
           </Link>
         </h1>
 
-        <div className="w-1/3 flex justify-end">
+        <div className="absolute right-4">
           <button
             onClick={handleLogout}
             className="flex items-center bg-red-600 hover:bg-red-700 px-4 py-2 rounded-lg font-semibold text-white shadow-lg hover:scale-105 transition"
