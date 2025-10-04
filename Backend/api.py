@@ -196,7 +196,7 @@ def user_info(current_user: models.Users = Depends(get_current_user)):
 @app.post("/run_cron")
 def run_cron(db: Session = Depends(get_db), api_key: str = Depends(get_api_key)):
     tasks = []
-    
+
     # Short session just to fetch tasks
     with SessionLocal() as db:
         tasks = db.query(models.Task).all()
@@ -215,15 +215,7 @@ def run_cron(db: Session = Depends(get_db), api_key: str = Depends(get_api_key))
                 last_report = task.last_report
                 contact = task.contact
 
-                new_items = main.refresh_data(text, searches, last_cron)
-                existing_items = db.query(models.Items).filter(models.Items.taskid == id).all()
-                existing_as_tuples = [
-                    (item.item_title, item.link, item.site_date, item.text)
-                    for item in existing_items
-                ]
-
-                all_items = list(new_items) + existing_as_tuples
-
+                # Map contact setting to hours
                 contact_hours = {
                     0: 0,
                     1: 12,
@@ -235,35 +227,48 @@ def run_cron(db: Session = Depends(get_db), api_key: str = Depends(get_api_key))
                     7: 168,
                 }
 
-                hours = int((datetime.now() - last_report).total_seconds() / 3600)
+                # Add 5-minute leeway for latency
+                required_time = timedelta(hours=contact_hours[contact]) - timedelta(minutes=5)
+                hours_since_report = datetime.now() - last_report if last_report else timedelta.max
+                enough_time = hours_since_report >= required_time
 
-                enough_time = hours >= contact_hours[contact]
-                enough_sources = len(all_items) >= sources
+                # Get existing items
+                existing_items = db.query(models.Items).filter(models.Items.taskid == id).all()
+                existing_as_tuples = [
+                    (item.item_title, item.link, item.site_date, item.text)
+                    for item in existing_items
+                ]
+                existing_count = len(existing_as_tuples)
 
-                if enough_sources and enough_time:
-                    # Sent the email
-                    report = main.create_report(text, all_items, last_report)
+                new_items = []
 
-                    email = db.query(models.Users).filter(models.Users.userid == userid).first().email
+                if existing_count >= sources:
+                    # Already enough sources → never fetch more
+                    if enough_time:
+                        # Send report now
+                        report = main.create_report(text, existing_as_tuples, last_report)
+                        email = db.query(models.Users).filter(models.Users.userid == userid).first().email
 
-                    send_message(
-                        to=email,
-                        subject=f"Your report on {title} is waiting for you!",
-                        message_text=report
-                    )
+                        send_message(
+                            to=email,
+                            subject=f"Your report on \"{title}\" is waiting for you!",
+                            message_text=report
+                        )
 
-                    db.query(models.Items).filter(models.Items.taskid == id).delete()
+                        # Reset items after sending
+                        db.query(models.Items).filter(models.Items.taskid == id).delete()
 
-                    # Re-fetch the task in this session before updating
-                    db_task = db.query(models.Task).filter(models.Task.id == id).first()
-                    db_task.last_report = datetime.utcnow()
-                    db_task.reports_sent += 1
+                        db_task = db.query(models.Task).filter(models.Task.id == id).first()
+                        db_task.last_report = datetime.utcnow()
+                        db_task.reports_sent += 1
 
-                    db_user = db.query(models.Users).filter(models.Users.userid == userid).first()
-                    db_user.reports_sent += 1
-                    db_user.last_time = datetime.utcnow()
-                elif not enough_sources:
-                    # Only add items if we don't yet have enough
+                        db_user = db.query(models.Users).filter(models.Users.userid == userid).first()
+                        db_user.reports_sent += 1
+                        db_user.last_time = datetime.utcnow()
+                else:
+                    # Not enough sources → fetch new ones
+                    new_items = main.refresh_data(text, searches, last_cron)
+
                     for name, link, date, reason in new_items:
                         new_item = models.Items(
                             taskid=id,
@@ -276,8 +281,33 @@ def run_cron(db: Session = Depends(get_db), api_key: str = Depends(get_api_key))
                         )
                         db.add(new_item)
 
-                # If we had enough sources but not enough time, skip adding new items entirely
+                    # After adding, re-check counts
+                    total_items = existing_count + len(new_items)
 
+                    if total_items >= sources and enough_time:
+                        # Send report now
+                        all_items = existing_as_tuples + new_items
+                        report = main.create_report(text, all_items, last_report)
+                        email = db.query(models.Users).filter(models.Users.userid == userid).first().email
+
+                        send_message(
+                            to=email,
+                            subject=f"Your report on {title} is waiting for you!",
+                            message_text=report
+                        )
+
+                        # Reset items after sending
+                        db.query(models.Items).filter(models.Items.taskid == id).delete()
+
+                        db_task = db.query(models.Task).filter(models.Task.id == id).first()
+                        db_task.last_report = datetime.utcnow()
+                        db_task.reports_sent += 1
+
+                        db_user = db.query(models.Users).filter(models.Users.userid == userid).first()
+                        db_user.reports_sent += 1
+                        db_user.last_time = datetime.utcnow()
+
+                # Always update last_cron
                 db_task = db.query(models.Task).filter(models.Task.id == id).first()
                 db_task.last_cron = datetime.utcnow()
 
