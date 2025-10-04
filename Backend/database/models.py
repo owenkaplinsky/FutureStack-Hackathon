@@ -38,3 +38,11 @@ class Users(Base):
     active_count = Column(Integer, nullable=False)
     reports_sent = Column(Integer, nullable=False)
     last_time = Column(DateTime)
+
+# User activity (actions taken by the user, reports sent to them, etc.)
+class UserActivity(Base):
+    __tablename__ = "useractivity"
+    id = Column(Integer, primary_key=True, nullable=False, index=True, autoincrement=True)
+    userid = Column(Integer, nullable=False)
+    action = Column(String, nullable=False)
+    time = Column(DateTime, nullable=False)

@@ -437,10 +437,15 @@ def refresh_data(user_query: str, searches: list, last_time: datetime):
 
         if isinstance(meta, dict):
             date = meta.get("published", None)
+            link = meta.get("link", None)
         else:
             date = None
+            link = None
 
-        link = meta["link"]
+        # Skip if there's no valid link
+        if not link:
+            continue
+
         link = resolve_url(link)
 
         content = get_main_content(link)[:3000]

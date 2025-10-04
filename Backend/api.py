@@ -77,7 +77,7 @@ def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
 
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     to_encode = data.copy()
-    expire = datetime.utcnow() + (expires_delta or timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES))
+    expire = datetime.now() + (expires_delta or timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES))
     to_encode.update({"exp": expire})
     return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
 
@@ -115,6 +115,13 @@ class UserInfo(BaseModel):
     active_count: int
     reports_sent: int
     last_time: Optional[datetime] = None
+
+class UserActivity(BaseModel):
+    action: str
+    time: datetime
+
+    class Config:
+        orm_mode = True
 
 class TaskBase(BaseModel):
     title: str
@@ -192,6 +199,18 @@ def user_info(current_user: models.Users = Depends(get_current_user)):
         "last_time": current_user.last_time,
     }
 
+# GET /user_activity - get recent activity for the current user
+@app.get("/user_activity", response_model=list[UserActivity])
+def user_activity(current_user: models.Users = Depends(get_current_user), db: Session = Depends(get_db)):
+    activities = (
+        db.query(models.UserActivity)
+        .filter(models.UserActivity.userid == current_user.userid)
+        .order_by(models.UserActivity.time.desc())
+        .limit(10)
+        .all()
+    )
+    return activities
+
 # POST /run_cron - call this for the cron job. Does all the backend work for cron
 @app.post("/run_cron")
 def run_cron(db: Session = Depends(get_db), api_key: str = Depends(get_api_key)):
@@ -259,14 +278,14 @@ def run_cron(db: Session = Depends(get_db), api_key: str = Depends(get_api_key))
                         db.query(models.Items).filter(models.Items.taskid == id).delete()
 
                         db_task = db.query(models.Task).filter(models.Task.id == id).first()
-                        db_task.last_report = datetime.utcnow()
+                        db_task.last_report = datetime.now()
                         db_task.reports_sent += 1
 
                         db_user = db.query(models.Users).filter(models.Users.userid == userid).first()
                         db_user.reports_sent += 1
-                        db_user.last_time = datetime.utcnow()
+                        db_user.last_time = datetime.now()
                 else:
-                    # Not enough sources → fetch new ones
+                    # If not enough sources, fetch new ones
                     new_items = main.refresh_data(text, searches, last_cron)
 
                     for name, link, date, reason in new_items:
@@ -296,20 +315,27 @@ def run_cron(db: Session = Depends(get_db), api_key: str = Depends(get_api_key))
                             message_text=report
                         )
 
+                        new_activity = models.UserActivity(
+                            userid=userid,
+                            action=f"Received a report for \"{title}\"",
+                            time=datetime.now(),
+                        )
+                        db.add(new_activity)
+
                         # Reset items after sending
                         db.query(models.Items).filter(models.Items.taskid == id).delete()
 
                         db_task = db.query(models.Task).filter(models.Task.id == id).first()
-                        db_task.last_report = datetime.utcnow()
+                        db_task.last_report = datetime.now()
                         db_task.reports_sent += 1
 
                         db_user = db.query(models.Users).filter(models.Users.userid == userid).first()
                         db_user.reports_sent += 1
-                        db_user.last_time = datetime.utcnow()
+                        db_user.last_time = datetime.now()
 
                 # Always update last_cron
                 db_task = db.query(models.Task).filter(models.Task.id == id).first()
-                db_task.last_cron = datetime.utcnow()
+                db_task.last_cron = datetime.now()
 
                 db.commit()
             except:
@@ -353,6 +379,8 @@ async def create_query(request: Request, db: Session = Depends(get_db), current_
     if len(queries) >= 3:
         raise HTTPException(status_code=409, detail="User already has 3 or more tasks; cannot create another.")
 
+    current_user.active_count += 1
+
     searches = main.create_query(text)
     new_task = models.Task(
         userid=userid,
@@ -365,10 +393,15 @@ async def create_query(request: Request, db: Session = Depends(get_db), current_
         contact=contact,
         reports_sent=0,
     )
-
-    current_user.active_count += 1
-
     db.add(new_task)
+
+    new_activity = models.UserActivity(
+        userid=userid,
+        action=f"Created new task \"{title}\"",
+        time=datetime.now(),
+    )
+    db.add(new_activity)
+
     db.commit()
     db.refresh(new_task)
 
@@ -404,6 +437,13 @@ def update_query(id: int, task: TaskUpdate, db: Session = Depends(get_db), curre
     if task.contact is not None:
         db_task.contact = task.contact
 
+    new_activity = models.UserActivity(
+        userid=db_task.userid,
+        action=f"Updated task \"{task.title}\"",
+        time=datetime.now(),
+    )
+    db.add(new_activity)
+
     db.commit()
     db.refresh(db_task)
 
@@ -431,6 +471,13 @@ def delete_query(id: int, db: Session = Depends(get_db), current_user: models.Us
 
     # Delete all related items first
     db.query(models.Items).filter(models.Items.taskid == id).delete()
+
+    new_activity = models.UserActivity(
+        userid=db_task.userid,
+        action=f"Deleted task \"{db_task.title}\"",
+        time=datetime.now(),
+    )
+    db.add(new_activity)
 
     # Then delete the task itself
     db.delete(db_task)
