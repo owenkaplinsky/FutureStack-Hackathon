@@ -4,22 +4,40 @@ import { FaRocket, FaSignInAlt, FaUserPlus } from 'react-icons/fa';
 
 export default function LandingPage() {
   return (
-    <div className="min-h-screen bg-gray-900 text-white flex flex-col items-center justify-center p-4">
-      <header className="text-center mb-12">
-        <h1 className="text-5xl font-bold mb-4">Welcome to Proactive AI</h1>
-        <p className="text-xl text-gray-400">Your personal, intelligent agent that works for you 24/7.</p>
+    <div className="h-screen bg-gray-900 text-white flex flex-col overflow-hidden">
+      {/* Header */}
+      <header className="w-full flex items-center justify-between p-6 bg-gray-800 shadow-md">
+        {/* Left spacer */}
+        <div className="w-1/3"></div>
+
+        {/* Centered title */}
+        <h1 className="text-2xl font-bold text-center w-1/3">Proactive AI</h1>
+
+        {/* Right side buttons */}
+        <div className="flex space-x-4 w-1/3 justify-end">
+          <Link
+            to="/login"
+            className="flex items-center bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+          >
+            <FaSignInAlt className="mr-2" /> Login
+          </Link>
+          <Link
+            to="/signup"
+            className="flex items-center bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded"
+          >
+            <FaUserPlus className="mr-2" /> Sign Up
+          </Link>
+        </div>
       </header>
 
-      <main className="max-w-4xl text-center">
-        <div className="bg-gray-800 p-8 rounded-lg shadow-lg mb-8">
-          <FaRocket className="text-5xl text-blue-500 mx-auto mb-4" />
+      <main className="max-w-4xl mx-auto text-center px-4 mt-6">
+        <div className="bg-gray-800 p-8 rounded-lg shadow-lg mb-6">
           <h2 className="text-3xl font-semibold mb-4">What is Proactive AI?</h2>
-          <p className="text-lg text-gray-300 mb-6">
-            Proactive AI turns a passive LLM into a dynamic agent that filters the noise from the signal, delivering only what matters to you. It autonomously monitors information online and creates actionable reports, so you can stay informed without being online 24/7.
+          <p className="text-lg text-gray-300 mb-6">Proactive AI turns a passive LLM into a dynamic agent that filters the noise from the signal, delivering only what matters to you. It autonomously monitors information online and creates actionable reports, so you can stay informed without being online 24/7.
           </p>
 
           {/* Embedded YouTube Video */}
-          <div className="aspect-w-16 aspect-h-9 mb-8">
+          <div className="aspect-w-16 aspect-h-9 mb-6">
             <iframe
               className="w-full h-96 rounded-lg"
               src="https://www.youtube.com/embed/0aE1eG18v_4"
@@ -31,7 +49,7 @@ export default function LandingPage() {
           </div>
         </div>
 
-        <div className="grid md:grid-cols-2 gap-8 mb-12">
+        <div className="grid md:grid-cols-2 gap-6">
           <div className="bg-gray-800 p-6 rounded-lg shadow-lg">
             <h3 className="text-2xl font-semibold mb-2">Key Features</h3>
             <ul className="text-left text-gray-300 space-y-2">
@@ -48,18 +66,9 @@ export default function LandingPage() {
             </p>
           </div>
         </div>
-
-        <div className="flex justify-center space-x-4">
-          <Link to="/login" className="flex items-center bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
-            <FaSignInAlt className="mr-2" /> Login
-          </Link>
-          <Link to="/signup" className="flex items-center bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">
-            <FaUserPlus className="mr-2" /> Sign Up
-          </Link>
-        </div>
       </main>
 
-      <footer className="mt-12 text-gray-500">
+      <footer className="mt-auto bg-gray-900 text-gray-500 text-center py-4">
         <p>Proactive AI &copy; 2025</p>
       </footer>
     </div>
