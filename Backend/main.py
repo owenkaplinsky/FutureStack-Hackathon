@@ -253,18 +253,25 @@ def create_query(user_query: str):
     """
     user_query: The query from the user.
     """
-
     messages = list(start_messages) + [{"role": "user", "content": user_query}]
     best_searches = []
     attempts = 0
 
     while attempts < 3 and len(best_searches) < 7:
         _, _, tool_contents = chat(messages, start_tools, True)
+
+        # Ensure tool_contents is a dictionary
         if isinstance(tool_contents, str):
-            tool_contents = json.loads(tool_contents)
+            try:
+                tool_contents = json.loads(tool_contents)
+            except json.JSONDecodeError:
+                tool_contents = {}
+
+        if not isinstance(tool_contents, dict):
+            tool_contents = {}
 
         searches = tool_contents.get("searches", [])
-        if len(searches) > len(best_searches):
+        if isinstance(searches, list) and len(searches) > len(best_searches):
             best_searches = searches
 
         attempts += 1
