@@ -214,6 +214,7 @@ def user_activity(current_user: models.Users = Depends(get_current_user), db: Se
     )
     return activities
 
+# POST /run_cron - call this for the cron job. Does all the backend work for cron
 @app.post("/run_cron")
 def run_cron(db: Session = Depends(get_db), api_key: str = Depends(get_api_key)):
     # Fetch tasks once
@@ -221,108 +222,106 @@ def run_cron(db: Session = Depends(get_db), api_key: str = Depends(get_api_key))
         tasks = db.query(models.Task).all()
 
     for task in tasks:
-        # Up to 3 retries for each task
-        for attempt in range(3):
-            try:
-                with SessionLocal() as db:
-                    id = task.id
-                    userid = task.userid
-                    title = task.title
-                    text = task.text
-                    sources = task.sources
-                    searches = task.searches
-                    last_cron = task.last_cron
-                    last_report = task.last_report
-                    contact = task.contact
+        try:
+            id = task.id
+            userid = task.userid
+            title = task.title
+            text = task.text
+            sources = task.sources
+            searches = task.searches
+            last_cron = task.last_cron
+            last_report = task.last_report
+            contact = task.contact
 
-                    contact_hours = {0: 0, 1: 12, 2: 24, 3: 48, 4: 72, 5: 96, 6: 120, 7: 168}
-                    required_time = timedelta(hours=contact_hours[contact]) - timedelta(minutes=5)
-                    hours_since_report = datetime.now() - last_report if last_report else timedelta.max
-                    enough_time = hours_since_report >= required_time
+            contact_hours = {0: 0, 1: 12, 2: 24, 3: 48, 4: 72, 5: 96, 6: 120, 7: 168}
+            required_time = timedelta(hours=contact_hours[contact]) - timedelta(minutes=5)
+            hours_since_report = datetime.now() - last_report if last_report else timedelta.max
+            enough_time = hours_since_report >= required_time
 
-                    existing_items = db.query(models.Items).filter(models.Items.taskid == id).all()
-                    existing_as_tuples = [
-                        (item.item_title, item.link, item.site_date, item.text)
-                        for item in existing_items
-                    ]
-                    existing_count = len(existing_as_tuples)
-                    total_items = existing_count
+            # Fetch existing items
+            with SessionLocal() as db:
+                existing_items = db.query(models.Items).filter(models.Items.taskid == id).all()
+                existing_as_tuples = [
+                    (item.item_title, item.link, item.site_date, item.text)
+                    for item in existing_items
+                ]
+                existing_count = len(existing_as_tuples)
+                total_items = existing_count
 
+            # Long operation (no DB connection open)
+            new_items = []
+            if existing_count < sources:
+                try:
+                    new_items = main.refresh_data(text, searches, last_cron) or []
+                except Exception as e:
+                    print(f"refresh_data() failed for task {id}: {e}")
                     new_items = []
-                    if existing_count < sources:
-                        try:
-                            new_items = main.refresh_data(text, searches, last_cron) or []
-                        except Exception as e:
-                            print(f"refresh_data() failed for task {id}: {e}")
-                            new_items = []
 
-                        if new_items:
-                            for name, link, date, reason in new_items:
-                                new_item = models.Items(
-                                    taskid=id,
-                                    userid=userid,
-                                    task_title=title,
-                                    item_title=name,
-                                    text=reason,
-                                    link=link,
-                                    site_date=date,
-                                )
-                                db.add(new_item)
-                            db.commit()
-                        total_items = existing_count + len(new_items)
-
-                    if total_items >= sources and enough_time:
-                        all_items = existing_as_tuples + [
-                            (i.item_title, i.link, i.site_date, i.text)
-                            for i in db.query(models.Items).filter(models.Items.taskid == id).all()
-                        ]
-                        report = main.create_report(text, all_items, last_report)
-
-                        try:
-                            email = db.query(models.Users).filter(models.Users.userid == userid).first().email
-                            send_message(
-                                to=email,
-                                subject=f'Your report on "{title}" is waiting for you!',
-                                message_text=report
-                            )
-                        except Exception as e:
-                            print(f"Email send failed for user {userid}: {e}")
-
-                        new_activity = models.UserActivity(
+            # Reconnect for inserts
+            with SessionLocal() as db:
+                if new_items:
+                    for name, link, date, reason in new_items:
+                        new_item = models.Items(
+                            taskid=id,
                             userid=userid,
-                            action=f'Received a report for "{title}"',
-                            time=datetime.now(),
+                            task_title=title,
+                            item_title=name,
+                            text=reason,
+                            link=link,
+                            site_date=date,
                         )
-                        db.add(new_activity)
+                        db.add(new_item)
+                    db.commit()
+                total_items = existing_count + len(new_items)
 
-                        db.query(models.Items).filter(models.Items.taskid == id).delete()
+            # Now re-open again for report/email logic
+            if total_items >= sources and enough_time:
+                with SessionLocal() as db:
+                    all_items = existing_as_tuples + [
+                        (i.item_title, i.link, i.site_date, i.text)
+                        for i in db.query(models.Items).filter(models.Items.taskid == id).all()
+                    ]
+                    report = main.create_report(text, all_items, last_report)
 
-                        db_task = db.query(models.Task).filter(models.Task.id == id).first()
-                        db_task.last_report = datetime.now()
-                        db_task.reports_sent += 1
+                    try:
+                        email = db.query(models.Users).filter(models.Users.userid == userid).first().email
+                        send_message(
+                            to=email,
+                            subject=f'Your report on "{title}" is waiting for you!',
+                            message_text=report
+                        )
+                    except Exception as e:
+                        print(f"Email send failed for user {userid}: {e}")
 
-                        db_user = db.query(models.Users).filter(models.Users.userid == userid).first()
-                        db_user.reports_sent += 1
-                        db_user.last_time = datetime.now()
+                    new_activity = models.UserActivity(
+                        userid=userid,
+                        action=f'Received a report for "{title}"',
+                        time=datetime.now(),
+                    )
+                    db.add(new_activity)
+
+                    db.query(models.Items).filter(models.Items.taskid == id).delete()
 
                     db_task = db.query(models.Task).filter(models.Task.id == id).first()
+                    db_task.last_report = datetime.now()
+                    db_task.reports_sent += 1
+
+                    db_user = db.query(models.Users).filter(models.Users.userid == userid).first()
+                    db_user.reports_sent += 1
+                    db_user.last_time = datetime.now()
+
                     db_task.last_cron = datetime.now()
                     db.commit()
 
-                # Task succeeded, move on to next one
-                break
+        except OperationalError as e:
+            print(f"DB error on task {task.id}: {e}")
+            engine.dispose()
+            time.sleep(1)
+            continue
 
-            except OperationalError as e:
-                print(f"DB error on task {task.id} (attempt {attempt+1}/3): {e}")
-                engine.dispose()
-                time.sleep(1)
-                # Retry the same task
-                continue
-
-            except Exception as e:
-                print(f"Error processing task {task.id}: {e}")
-                # No retry for non-database errors
-                break
+        except Exception as e:
+            print(f"Error processing task {task.id}: {e}")
+            break
 
     return {"detail": "All tasks ran successfully."}
 
